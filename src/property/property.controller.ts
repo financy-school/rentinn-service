@@ -10,6 +10,7 @@ import {
 import { PropertyService } from './property.service';
 import { RegisterPropertyUserDto } from './dto/register-property-user.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
+import { LoginPropertyUserDto } from './dto/login-property-user.dto';
 
 @Controller('property')
 export class PropertyController {
@@ -21,7 +22,7 @@ export class PropertyController {
   }
 
   @Post('property-user/login')
-  loginUser(@Body() createPropertyDto: RegisterPropertyUserDto) {
+  loginUser(@Body() createPropertyDto: LoginPropertyUserDto) {
     return this.propertyService.loginUser(createPropertyDto);
   }
 

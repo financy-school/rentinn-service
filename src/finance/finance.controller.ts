@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { FinanceService } from './finance.service';
 import { CreateFinanceDto } from './dto/create-finance.dto';
 import { UpdateFinanceDto } from './dto/update-finance.dto';
@@ -7,28 +15,42 @@ import { UpdateFinanceDto } from './dto/update-finance.dto';
 export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 
-  @Post()
-  create(@Body() createFinanceDto: CreateFinanceDto) {
-    return this.financeService.create(createFinanceDto);
+  // Add a financial record (e.g., expense, payment collection)
+  @Post('add')
+  async create(@Body() createFinanceDto: CreateFinanceDto) {
+    return await this.financeService.create(createFinanceDto);
   }
 
-  @Get()
-  findAll() {
-    return this.financeService.findAll();
+  // Fetch all financial records
+  @Get('list')
+  async findAll() {
+    return await this.financeService.findAll();
   }
 
+  // Fetch financial details for a specific property
+  @Get('property/:propertyId')
+  async findByProperty(@Param('propertyId') propertyId: string) {
+    return await this.financeService.findByProperty(propertyId);
+  }
+
+  // Fetch a specific finance record by its ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.financeService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.financeService.findOne(id);
   }
 
+  // Update a finance record
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFinanceDto: UpdateFinanceDto) {
-    return this.financeService.update(+id, updateFinanceDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateFinanceDto: UpdateFinanceDto,
+  ) {
+    return await this.financeService.update(id, updateFinanceDto);
   }
 
+  // Delete a finance record
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.financeService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.financeService.remove(id);
   }
 }

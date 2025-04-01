@@ -16,6 +16,9 @@ export class Finance {
   @ManyToOne(() => Tenant, (tenant) => tenant.id, { nullable: false })
   tenant: Tenant;
 
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  property_id: string;
+
   @ManyToOne(() => Property, (property) => property.id, { nullable: false })
   property: Property;
 
