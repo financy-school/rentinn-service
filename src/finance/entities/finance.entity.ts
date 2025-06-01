@@ -6,7 +6,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Tenant } from '../../tenant/entities/tenant.entity';
-import { Property } from '../../property/entities/property.entity';
+import { Property } from '../../properties/entities/property.entity';
 
 @Entity('finance')
 export class Finance {

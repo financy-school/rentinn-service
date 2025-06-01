@@ -1,22 +1,22 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
 import { AuthModule } from './auth/auth.module';
-
 import { CommonModule } from './common/common.module';
 import { AuthEntity } from './auth/entities/auth.entity';
-import { PropertyModule } from './property/property.module';
-import { RoomModule } from './room/room.module';
 import { TenantModule } from './tenant/tenant.module';
 import { FinanceModule } from './finance/finance.module';
-import { Property } from './property/entities/property.entity';
-import { Room } from './room/entities/room.entity';
 import { Tenant } from './tenant/entities/tenant.entity';
 import { Finance } from './finance/entities/finance.entity';
+import { Kyc } from './kyc/entities/kyc.entity';
+import { Payment } from './rentals/entities/payment.entity';
+import { Rental } from './rentals/entities/rental.entity';
+import { User } from './users/entities/user.entity';
+import { Property } from './properties/entities/property.entity';
+import { PropertiesModule } from './properties/properties.module';
+import { Room } from './properties/entities/room.entity';
 
 @Module({
   controllers: [AppController],
@@ -30,6 +30,7 @@ import { Finance } from './finance/entities/finance.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
+        console.log(config);
         return {
           type: 'mysql',
           host: config.get('DB_HOST'),
@@ -37,7 +38,17 @@ import { Finance } from './finance/entities/finance.entity';
           username: config.get('DB_USERNAME'),
           password: config.get('DB_PASSWORD'),
           database: config.get('DB_DATABASE'),
-          entities: [AuthEntity, Property, Room, Tenant, Finance],
+          entities: [
+            AuthEntity,
+            Property,
+            Room,
+            Tenant,
+            Finance,
+            Kyc,
+            Payment,
+            Rental,
+            User,
+          ],
           // synchronize: config.get('DB_SYNC'),
           synchronize: true,
           logging: ['query', 'schema'],
@@ -47,8 +58,8 @@ import { Finance } from './finance/entities/finance.entity';
 
     AuthModule,
     CommonModule,
-    PropertyModule,
-    RoomModule,
+    PropertiesModule,
+
     TenantModule,
     FinanceModule,
   ],

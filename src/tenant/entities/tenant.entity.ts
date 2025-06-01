@@ -6,8 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { Property } from '../../property/entities/property.entity';
-import { Room } from '../../room/entities/room.entity';
+import { Room } from '../../properties/entities/room.entity';
 
 @Entity('tenant')
 export class Tenant {
@@ -31,11 +30,6 @@ export class Tenant {
 
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
-
-  @ManyToOne(() => Property, (property) => property.tenants, {
-    onDelete: 'CASCADE',
-  })
-  property: Property;
 
   @ManyToOne(() => Room, (room) => room.id, {
     onDelete: 'SET NULL',
