@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Room } from './room.entity';
 
@@ -52,14 +61,14 @@ export class Property {
   @Column({ nullable: true })
   insuranceDetails: string;
 
-  @ManyToOne(() => User, user => user.properties)
+  @ManyToOne(() => User, (user) => user.properties)
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
   @Column()
   ownerId: number;
 
-  @OneToMany(() => Room, room => room.property, { cascade: true })
+  @OneToMany(() => Room, (room) => room.property, { cascade: true })
   rooms: Room[];
 
   @CreateDateColumn()
@@ -67,7 +76,7 @@ export class Property {
 
   @UpdateDateColumn()
   updatedAt: Date;
-  
+
   // Convenience method to calculate total property value
   calculateTotalValue(): number {
     if (!this.rooms || this.rooms.length === 0) {

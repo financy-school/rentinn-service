@@ -26,12 +26,12 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     try {
       const user = await this.usersService.findByEmail(email);
-      
-      if (user && await this.comparePasswords(password, user.password)) {
-        const { password, ...result } = user;
+
+      if (user && (await this.comparePasswords(password, user.password))) {
+        const { ...result } = user;
         return result;
       }
-      
+
       return null;
     } catch (error) {
       return null;
@@ -43,21 +43,21 @@ export class AuthService {
    */
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    
+
     if (!user.isActive) {
       throw new UnauthorizedException('User account is inactive');
     }
-    
-    const payload = { 
-      email: user.email, 
+
+    const payload = {
+      email: user.email,
       sub: user.id,
       role: user.role,
     };
-    
+
     return {
       user,
       accessToken: this.jwtService.sign(payload),
@@ -67,7 +67,10 @@ export class AuthService {
   /**
    * Utility method to compare passwords
    */
-  private async comparePasswords(plainText: string, hashedPassword: string): Promise<boolean> {
+  private async comparePasswords(
+    plainText: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainText, hashedPassword);
   }
 }

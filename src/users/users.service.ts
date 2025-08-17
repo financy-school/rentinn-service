@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -8,12 +12,14 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../common/enums/user-role.enum';
+import { PropertiesService } from '../properties/properties.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly propertyService: PropertiesService,
   ) {}
 
   /**
@@ -38,18 +44,38 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return this.userRepository.save(newUser);
+    await this.userRepository.save(newUser);
+
+    // create a new entry in property table if the user is a landlord
+    if (createUserDto.role === UserRole.LANDLORD) {
+      const property = await this.propertyService.createProperty(newUser.id, {
+        name: `${newUser.firstName}'s Property`,
+        description: 'Default property created for landlord',
+        address: createUserDto.address || 'Default Address',
+        city: createUserDto.city || 'Default City',
+        state: createUserDto.state || 'Default State',
+        postalCode: createUserDto.postalCode || '00000',
+        country: createUserDto.country || 'Default Country',
+      });
+      newUser.properties = [property];
+      await this.userRepository.save(newUser);
+    }
+
+    return newUser;
   }
 
   /**
    * Find all users with pagination
    */
-  async findAll(paginationDto: PaginationDto, role?: UserRole): Promise<PaginationResponse<User>> {
+  async findAll(
+    paginationDto: PaginationDto,
+    role?: UserRole,
+  ): Promise<PaginationResponse<User>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.userRepository.createQueryBuilder('user');
-    
+
     if (role) {
       queryBuilder.where('user.role = :role', { role });
     }
@@ -88,7 +114,8 @@ export class UsersService {
   /**
    * Find a user by their email
    */
-  async findByEmail(email: string): Promise<User> {
+  async findByEmail(email: string) {
+    // First find the user
     const user = await this.userRepository.findOne({
       where: { email },
     });
@@ -96,8 +123,18 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
+    let property_id: number;
+    // If the user is a landlord, load their properties
+    if (user.role === UserRole.LANDLORD) {
+      // Load properties for landlords with explicit selection of the id field
+      property_id = (
+        await this.propertyService.findPropertiesByOwnerId(user.id)
+      ).id;
 
-    return user;
+      // Ensure each property has an id in the response
+    }
+
+    return { ...user, property_id };
   }
 
   /**
@@ -138,12 +175,16 @@ export class UsersService {
   /**
    * Find tenants for a landlord
    */
-  async findTenants(landlordId: number, paginationDto: PaginationDto): Promise<PaginationResponse<User>> {
+  async findTenants(
+    landlordId: number,
+    paginationDto: PaginationDto,
+  ): Promise<PaginationResponse<User>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     // Get all rentals from landlord's properties
-    const queryBuilder = this.userRepository.createQueryBuilder('user')
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
       .innerJoin('user.rentalsAsTenant', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')

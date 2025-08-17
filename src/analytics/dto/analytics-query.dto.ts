@@ -11,4 +11,7 @@ export class AnalyticsQueryDto {
 
   @IsOptional()
   propertyId?: number;
+
+  @IsOptional()
+  landlordId?: string;
 }

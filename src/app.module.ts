@@ -17,6 +17,9 @@ import { User } from './users/entities/user.entity';
 import { Property } from './properties/entities/property.entity';
 import { PropertiesModule } from './properties/properties.module';
 import { Room } from './properties/entities/room.entity';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { Ticket } from './tickets/entities/ticket.entity';
 
 @Module({
   controllers: [AppController],
@@ -48,6 +51,7 @@ import { Room } from './properties/entities/room.entity';
             Payment,
             Rental,
             User,
+            Ticket,
           ],
           // synchronize: config.get('DB_SYNC'),
           synchronize: true,
@@ -55,13 +59,13 @@ import { Room } from './properties/entities/room.entity';
         };
       },
     }),
-
     AuthModule,
     CommonModule,
     PropertiesModule,
-
+    AnalyticsModule,
     TenantModule,
     FinanceModule,
+    TicketsModule,
   ],
 })
 export class AppModule {}

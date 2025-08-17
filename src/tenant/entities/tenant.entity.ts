@@ -28,6 +28,9 @@ export class Tenant {
   @Column({ type: 'varchar', length: 50, nullable: false })
   id_proof_number: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  property_id: number;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 

@@ -17,7 +17,7 @@ async function bootstrap() {
   if (process.env.AWS_SECRETS_NAME) await fetchAwsSecrets();
 
   const SERVICE_NAME = process.env.SERVICE_NAME || 'service';
-  const SERVICE_PORT = Number(process.env.SERVICE_PORT) || 3000;
+  const SERVICE_PORT = Number(process.env.SERVICE_PORT) || 4200;
 
   const server = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
