@@ -314,7 +314,7 @@ export class DocumentsService {
     if (!organizationDocument.download_url) {
       organizationDocument.download_url = await this.fetchS3DownloadPath({
         document_path: organizationDocument.document_path,
-        expire_in: expire_in || 10, // 10 seconds
+        expire_in: expire_in || 3600, // 10 seconds
       });
       organizationDocument.download_url_expire_at = new Date(
         Date.now() + expire_in * 1000,
