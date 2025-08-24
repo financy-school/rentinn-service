@@ -40,8 +40,4 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsUrl()
   download_url?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  is_file_prefix_required?: boolean;
 }

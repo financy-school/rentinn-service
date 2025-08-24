@@ -84,7 +84,6 @@ export class DocumentsService {
       signed_at,
       doc_type,
       download_url,
-      is_file_prefix_required,
     } = document_dto;
 
     let { file_name } = document_dto;
@@ -117,11 +116,8 @@ export class DocumentsService {
 
       new_document.metadata = metadata;
 
-      let new_filename = `${property_id}${'_'}${file_name}`;
-      if (is_file_prefix_required) {
-        const file_prefix = uuid.substring(0, 8);
-        new_filename = `${property_id}${file_prefix}-${file_name}`;
-      }
+      const new_filename = `${property_id}${'_'}${file_name}`;
+
       new_document.document_path = new_filename;
 
       new_document.upload_url = await this.fetchS3UploadPath({
