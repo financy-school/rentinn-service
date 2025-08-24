@@ -20,6 +20,8 @@ import { Room } from './properties/entities/room.entity';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { Ticket } from './tickets/entities/ticket.entity';
+import { DocumentsModule } from './documents/documents.module';
+import { DocumentEntity } from './documents/entities/document.entity';
 
 @Module({
   controllers: [AppController],
@@ -33,7 +35,6 @@ import { Ticket } from './tickets/entities/ticket.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        console.log(config);
         return {
           type: 'mysql',
           host: config.get('DB_HOST'),
@@ -52,6 +53,7 @@ import { Ticket } from './tickets/entities/ticket.entity';
             Rental,
             User,
             Ticket,
+            DocumentEntity,
           ],
           // synchronize: config.get('DB_SYNC'),
           synchronize: true,
@@ -66,6 +68,7 @@ import { Ticket } from './tickets/entities/ticket.entity';
     TenantModule,
     FinanceModule,
     TicketsModule,
+    DocumentsModule,
   ],
 })
 export class AppModule {}

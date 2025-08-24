@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   Min,
+  IsArray,
 } from 'class-validator';
 
 export class CreateRoomDto {
@@ -56,4 +57,8 @@ export class CreateRoomDto {
   @IsOptional()
   @IsString()
   amenities?: string;
+
+  @IsOptional()
+  @IsArray()
+  image_document_id_list?: string[];
 }

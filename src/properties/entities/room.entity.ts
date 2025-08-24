@@ -49,6 +49,9 @@ export class Room {
   @Column({ nullable: true })
   amenities: string;
 
+  @Column('simple-array', { nullable: true })
+  image_document_id_list: string[];
+
   @ManyToOne(() => Property, (property) => property.rooms, {
     onDelete: 'CASCADE',
   })

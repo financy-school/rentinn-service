@@ -37,7 +37,7 @@ export const DATA_VALIDATION_ERROR = {
   code: '10010',
   description: 'DATA_VALIDATION_ERROR',
 };
-export const ORG_DOC_NOT_FOUND = {
+export const DOC_NOT_FOUND = {
   code: '10011',
   description: 'ORG_DOC_NOT_FOUND',
 };
@@ -45,27 +45,13 @@ export const INVALID_FILE_TYPE = {
   code: '10012',
   description: 'INVALID_FILE_TYPE',
 };
-export const PARTNER_NOT_FOUND = {
-  code: '10013',
-  description: 'PARTNER_NOT_FOUND',
-};
-export const PARTNER_PERMISSIONS_AGREEMENT_DATA_UPDATE_ERROR = {
-  code: '10014',
-  description: 'PARTNER_PERMISSIONS_AGREEMENT_DATA_UPDATE_ERROR',
-};
+
 export const FAILED_TO_SEND_EMAIL_NOTIFICATION = {
   code: '10015',
   description: 'FAILED_TO_SEND_EMAIL_NOTIFICATION',
 };
-export const ORG_DOC_CREATE_FAILED = {
-  code: '10016',
-  description: 'ORG_DOC_CREATE_FAILED',
-};
-export const ORG_AUTH_REP_NOT_FOUND = {
-  code: '10017',
-  description: 'ORG_AUTH_REP_NOT_FOUND',
-};
-export const ORG_NOT_FOUND = {
-  code: '10018',
-  description: 'ORG_NOT_FOUND',
+
+export const DOC_CREATE_FAILED = {
+  code: '10019',
+  description: 'DOC_CREATE_FAILED',
 };
