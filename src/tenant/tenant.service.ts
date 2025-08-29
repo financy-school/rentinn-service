@@ -33,10 +33,15 @@ export class TenantService {
 
     const tenant = this.tenantRepository.create({
       name: createTenantDto.name,
-      phone_number: createTenantDto.phoneNumber,
+      phone_number: createTenantDto.phone,
+      alternate_phone: createTenantDto.alternatePhone,
       email: createTenantDto.email,
-      id_proof_type: createTenantDto.idProofType,
-      id_proof_number: createTenantDto.idProofNumber,
+      tenant_type: createTenantDto.tenantType,
+      agreement_period: createTenantDto.agreementPeriod,
+      lock_in_period: createTenantDto.lockInPeriod,
+      add_rent_on: createTenantDto.addRentOn
+        ? new Date(createTenantDto.addRentOn)
+        : null,
       check_in_date: new Date(createTenantDto.checkInDate),
       check_out_date: createTenantDto.checkOutDate
         ? new Date(createTenantDto.checkOutDate)

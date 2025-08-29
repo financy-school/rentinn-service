@@ -15,19 +15,19 @@ export class CreateTenantDto {
 
   @IsString()
   @IsNotEmpty()
-  phoneNumber: string;
+  phone: string;
+
+  @IsString()
+  @IsOptional()
+  alternatePhone?: string;
 
   @IsEmail()
   @IsOptional()
   email?: string;
 
   @IsString()
-  @IsNotEmpty()
-  idProofType: string;
-
-  @IsString()
-  @IsNotEmpty()
-  idProofNumber: string;
+  @IsOptional()
+  tenantType?: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -45,4 +45,16 @@ export class CreateTenantDto {
   @IsDateString()
   @IsOptional()
   checkOutDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  addRentOn?: string;
+
+  @IsString()
+  @IsOptional()
+  agreementPeriod?: string;
+
+  @IsString()
+  @IsOptional()
+  lockInPeriod?: string;
 }

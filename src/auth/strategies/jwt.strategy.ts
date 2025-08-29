@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         throw new UnauthorizedException('User account is inactive');
       }
 
-      const { password, ...result } = user;
+      const { ...result } = user;
       return result;
     } catch (error) {
       throw new UnauthorizedException('Invalid token');

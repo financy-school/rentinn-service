@@ -19,16 +19,31 @@ export class Tenant {
   @Column({ type: 'varchar', length: 15, nullable: false })
   phone_number: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  email: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: false })
-  id_proof_type: string; // e.g., Aadhar, Passport
+  @Column({ type: 'varchar', length: 15, nullable: true, default: null })
+  alternate_phone: string;
 
   @Column({ type: 'varchar', length: 50, nullable: false })
+  tenant_type: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  agreement_period: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  lock_in_period: string;
+
+  @Column({ type: 'date', nullable: true, default: null })
+  add_rent_on: Date;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  email: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true, default: null })
+  id_proof_type: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
   id_proof_number: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   property_id: number;
 
   @Column({ type: 'boolean', default: true })
