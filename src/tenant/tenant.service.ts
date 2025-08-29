@@ -205,4 +205,34 @@ export class TenantService {
 
     return property;
   }
+
+  async findByRoom(
+    roomId: number,
+    { page = 1, limit = 10 }: PaginationDto,
+  ): Promise<Tenant[]> {
+    return this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoinAndSelect('tenant.room', 'room')
+      .where('room.id = :roomId', { roomId })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('tenant.created_at', 'DESC')
+      .getMany();
+  }
+
+  async findByPropertyAndRoom(
+    propertyId: number,
+    roomId: number,
+    { page = 1, limit = 10 }: PaginationDto,
+  ): Promise<Tenant[]> {
+    return this.tenantRepository
+      .createQueryBuilder('tenant')
+      .leftJoinAndSelect('tenant.room', 'room')
+      .where('room.id = :roomId', { roomId })
+      .andWhere('room.propertyId = :propertyId', { propertyId })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('tenant.created_at', 'DESC')
+      .getMany();
+  }
 }

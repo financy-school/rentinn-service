@@ -43,6 +43,29 @@ export class TenantsController {
     return this.tenantsService.findActive(paginationDto);
   }
 
+  @Get('room/:roomId')
+  @UseGuards(JwtAuthGuard)
+  findByRoom(
+    @Param('roomId', ParseIntPipe) roomId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.tenantsService.findByRoom(roomId, paginationDto);
+  }
+
+  @Get('property/:propertyId/room/:roomId')
+  @UseGuards(JwtAuthGuard)
+  findByPropertyAndRoom(
+    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('roomId', ParseIntPipe) roomId: number,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.tenantsService.findByPropertyAndRoom(
+      propertyId,
+      roomId,
+      paginationDto,
+    );
+  }
+
   @Get('search')
   @UseGuards(JwtAuthGuard)
   searchTenants(
