@@ -38,7 +38,7 @@ export class RentalsService {
       createRentalDto.roomId,
     );
 
-    if (!room.isAvailable) {
+    if (!room.available) {
       throw new BadRequestException('Room is not available for rent');
     }
 
@@ -64,7 +64,7 @@ export class RentalsService {
 
     // Use room's security deposit if not specified
     if (!createRentalDto.securityDeposit) {
-      createRentalDto.securityDeposit = room.securityDeposit;
+      createRentalDto.securityDeposit = room.securityAmount;
     }
 
     // Set outstanding amount to initial rent
@@ -239,8 +239,8 @@ export class RentalsService {
     // If rental is deactivated, make room available again
     if (rental.isActive === false) {
       const room = await this.propertiesService.findRoomById(rental.roomId);
-      room.isAvailable = true;
-      await this.propertiesService.updateRoom(room.id, { isAvailable: true });
+      room.available = true;
+      await this.propertiesService.updateRoom(room.id, { available: true });
     }
 
     return this.rentalRepository.save(rental);
@@ -314,8 +314,8 @@ export class RentalsService {
     // Free up the room if rental is active
     if (rental.isActive) {
       const room = await this.propertiesService.findRoomById(rental.roomId);
-      room.isAvailable = true;
-      await this.propertiesService.updateRoom(room.id, { isAvailable: true });
+      room.available = true;
+      await this.propertiesService.updateRoom(room.id, { available: true });
     }
 
     await this.rentalRepository.remove(rental);

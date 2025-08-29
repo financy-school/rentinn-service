@@ -6,21 +6,21 @@ import {
   IsString,
   Min,
   IsArray,
+  IsDateString,
 } from 'class-validator';
 
 export class CreateRoomDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  roomName: string;
 
   @IsOptional()
   @IsString()
   description?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  area?: number;
+  @IsString()
+  areaType?: string;
 
   @IsNotEmpty()
   @IsNumber()
@@ -30,11 +30,11 @@ export class CreateRoomDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  securityDeposit?: number;
+  securityAmount?: number;
 
   @IsOptional()
   @IsBoolean()
-  isAvailable?: boolean;
+  available?: boolean;
 
   @IsOptional()
   @IsNumber()
@@ -43,7 +43,7 @@ export class CreateRoomDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  bedroomCount?: number;
+  bedCount?: number;
 
   @IsOptional()
   @IsNumber()
@@ -51,8 +51,16 @@ export class CreateRoomDto {
   bathroomCount?: number;
 
   @IsOptional()
+  @IsNumber()
+  lastElectricityReading?: number;
+
+  @IsOptional()
+  @IsDateString()
+  lastElectricityReadingDate?: Date;
+
+  @IsOptional()
   @IsBoolean()
-  isFurnished?: boolean;
+  furnished?: boolean;
 
   @IsOptional()
   @IsString()

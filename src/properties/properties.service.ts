@@ -135,10 +135,26 @@ export class PropertiesService {
       throw new NotFoundException(`Property with ID ${propertyId} not found`);
     }
 
-    const newRoom = this.roomRepository.create({
-      ...createRoomDto,
-      propertyId,
-    });
+    const new_room = new Room();
+    new_room.name = createRoomDto.roomName;
+    new_room.areaType = createRoomDto.areaType;
+    new_room.rentAmount = createRoomDto.rentAmount;
+    new_room.securityAmount = createRoomDto.securityAmount;
+    new_room.available = createRoomDto.available;
+    new_room.floorNumber = createRoomDto.floorNumber;
+    new_room.bedCount = createRoomDto.bedCount;
+    new_room.bathroomCount = createRoomDto.bathroomCount;
+    new_room.lastElectricityReading = createRoomDto.lastElectricityReading;
+    new_room.lastElectricityReadingDate =
+      createRoomDto.lastElectricityReadingDate;
+    new_room.furnished = createRoomDto.furnished;
+    new_room.amenities = createRoomDto.amenities;
+    new_room.image_document_id_list = createRoomDto.image_document_id_list;
+    new_room.propertyId = propertyId;
+    new_room.property = property;
+    new_room.description = createRoomDto.description;
+
+    const newRoom = this.roomRepository.create(new_room);
 
     return this.roomRepository.save(newRoom);
   }

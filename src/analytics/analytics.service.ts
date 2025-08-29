@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Repository,
-  Between,
-  IsNull,
-  MoreThanOrEqual,
-  LessThanOrEqual,
-} from 'typeorm';
+import { Repository } from 'typeorm';
 import { Rental } from '../rentals/entities/rental.entity';
 import { Payment } from '../rentals/entities/payment.entity';
 import { Property } from '../properties/entities/property.entity';
@@ -549,7 +543,6 @@ export class AnalyticsService {
         );
 
         // Calculate total area
-        const totalArea = rooms.reduce((sum, room) => sum + room.area, 0);
 
         // Calculate actual income for the period
         const paymentsQuery = this.paymentRepository
@@ -580,8 +573,6 @@ export class AnalyticsService {
           rooms.length > 0 ? (occupiedRooms / rooms.length) * 100 : 0;
 
         // Calculate income per square foot/meter
-        const incomePerArea =
-          totalArea > 0 ? totalExpectedMonthly / totalArea : 0;
 
         // Calculate late payment rate
         const latePaymentsQuery = this.paymentRepository
@@ -619,7 +610,7 @@ export class AnalyticsService {
           occupancyRate,
           monthlyExpectedIncome: totalExpectedMonthly,
           periodActualIncome: actualIncome,
-          incomePerArea,
+          incomePerArea: 0,
           latePaymentRate,
           // Calculate ROI (simplified)
           estimatedAnnualIncome: totalExpectedMonthly * 12,
@@ -800,10 +791,6 @@ export class AnalyticsService {
     const { propertyId } = queryDto;
 
     // Get current occupancy and income data
-    const occupancyStats = await this.getOccupancyStatistics(
-      landlordId,
-      propertyId,
-    );
 
     // Get all properties
     const propertiesQuery = this.propertyRepository
