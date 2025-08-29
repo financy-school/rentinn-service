@@ -19,6 +19,10 @@ export class CreateRentalDto {
   @IsNumber()
   roomId: number;
 
+  @IsNotEmpty()
+  @IsNumber()
+  propertyId: number;
+
   @IsOptional()
   @IsNumber()
   @IsPositive()

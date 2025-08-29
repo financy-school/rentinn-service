@@ -46,6 +46,12 @@ export class Tenant {
   @Column({ type: 'varchar', length: 255, nullable: false })
   property_id: number;
 
+  @Column({ type: 'boolean', default: false, nullable: true })
+  is_on_notice: boolean;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
+  rent_amount: number;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 

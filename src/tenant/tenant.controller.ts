@@ -97,6 +97,13 @@ export class TenantsController {
     return this.tenantsService.update(id, updateTenantDto);
   }
 
+  @Patch(':id/notice')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  putOnNotice(@Param('id') id: string) {
+    return this.tenantsService.putOnNotice(id);
+  }
+
   @Patch(':id/checkout')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)

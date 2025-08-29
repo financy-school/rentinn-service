@@ -65,6 +65,9 @@ export class Rental {
   @Column()
   roomId: number;
 
+  @Column()
+  propertyId: number;
+
   @OneToMany(() => Payment, (payment) => payment.rental, { cascade: true })
   payments: Payment[];
 

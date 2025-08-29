@@ -194,14 +194,14 @@ export class PropertiesService {
   /**
    * Find room by ID
    */
-  async findRoomById(id: number): Promise<Room> {
+  async findRoomById(propertyId: number, roomId: number): Promise<Room> {
     const room = await this.roomRepository.findOne({
-      where: { id },
+      where: { id: roomId, propertyId },
       relations: ['property', 'rentals'],
     });
 
     if (!room) {
-      throw new NotFoundException(`Room with ID ${id} not found`);
+      throw new NotFoundException(`Room with ID ${roomId} not found`);
     }
 
     return room;
@@ -210,8 +210,12 @@ export class PropertiesService {
   /**
    * Update room
    */
-  async updateRoom(id: number, updateRoomDto: UpdateRoomDto): Promise<Room> {
-    const room = await this.findRoomById(id);
+  async updateRoom(
+    propertyId: number,
+    roomId: number,
+    updateRoomDto: UpdateRoomDto,
+  ): Promise<Room> {
+    const room = await this.findRoomById(propertyId, roomId);
 
     // Update and save
     this.roomRepository.merge(room, updateRoomDto);
@@ -221,8 +225,8 @@ export class PropertiesService {
   /**
    * Remove room
    */
-  async removeRoom(id: number): Promise<void> {
-    const room = await this.findRoomById(id);
+  async removeRoom(propertyId: number, roomId: number): Promise<void> {
+    const room = await this.findRoomById(propertyId, roomId);
 
     // Check if room has active rentals
     if (room.rentals && room.rentals.some((rental) => rental.isActive)) {

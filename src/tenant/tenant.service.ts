@@ -235,4 +235,10 @@ export class TenantService {
       .orderBy('tenant.created_at', 'DESC')
       .getMany();
   }
+
+  async putOnNotice(id: string): Promise<Tenant> {
+    const tenant = await this.findOne(id);
+    tenant.is_on_notice = true;
+    return this.tenantRepository.save(tenant);
+  }
 }

@@ -139,21 +139,25 @@ export class PropertiesController {
     return this.propertiesService.findPropertyRooms(propertyId, paginationDto);
   }
 
-  @Get('rooms/:id')
+  @Get(':propertyId/rooms/:roomId')
   @UseGuards(JwtAuthGuard)
-  findRoomById(@Param('id', ParseIntPipe) id: number) {
-    return this.propertiesService.findRoomById(id);
+  findRoomById(
+    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('roomId', ParseIntPipe) roomId: number,
+  ) {
+    return this.propertiesService.findRoomById(propertyId, roomId);
   }
 
-  @Patch('rooms/:id')
+  @Patch('/:propertyId/rooms/:roomId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async updateRoom(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('roomId', ParseIntPipe) roomId: number,
     @Body() updateRoomDto: UpdateRoomDto,
     @Request() req: any,
   ) {
-    const room = await this.propertiesService.findRoomById(id);
+    const room = await this.propertiesService.findRoomById(propertyId, roomId);
 
     // Check if user is the owner or admin
     if (req.user.role !== UserRole.ADMIN) {
@@ -168,14 +172,18 @@ export class PropertiesController {
       }
     }
 
-    return this.propertiesService.updateRoom(id, updateRoomDto);
+    return this.propertiesService.updateRoom(propertyId, roomId, updateRoomDto);
   }
 
-  @Delete('rooms/:id')
+  @Delete(':propertyId/rooms/:roomId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async removeRoom(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    const room = await this.propertiesService.findRoomById(id);
+  async removeRoom(
+    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('roomId', ParseIntPipe) roomId: number,
+    @Request() req: any,
+  ) {
+    const room = await this.propertiesService.findRoomById(propertyId, roomId);
 
     // Check if user is the owner or admin
     if (req.user.role !== UserRole.ADMIN) {
@@ -190,7 +198,7 @@ export class PropertiesController {
       }
     }
 
-    return this.propertiesService.removeRoom(id);
+    return this.propertiesService.removeRoom(propertyId, roomId);
   }
 
   @Get('rooms/available/list')

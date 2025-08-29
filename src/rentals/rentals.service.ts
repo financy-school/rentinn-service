@@ -35,6 +35,7 @@ export class RentalsService {
   async create(createRentalDto: CreateRentalDto): Promise<Rental> {
     // Get the room to check if it's available and get rent amount
     const room = await this.propertiesService.findRoomById(
+      createRentalDto.propertyId,
       createRentalDto.roomId,
     );
 
@@ -238,9 +239,14 @@ export class RentalsService {
 
     // If rental is deactivated, make room available again
     if (rental.isActive === false) {
-      const room = await this.propertiesService.findRoomById(rental.roomId);
+      const room = await this.propertiesService.findRoomById(
+        rental.propertyId,
+        rental.roomId,
+      );
       room.available = true;
-      await this.propertiesService.updateRoom(room.id, { available: true });
+      await this.propertiesService.updateRoom(room.propertyId, room.id, {
+        available: true,
+      });
     }
 
     return this.rentalRepository.save(rental);
@@ -308,14 +314,19 @@ export class RentalsService {
   /**
    * Remove a rental
    */
-  async remove(id: number): Promise<void> {
-    const rental = await this.findOne(id);
+  async remove(rentalId: number, roomId: number): Promise<void> {
+    const rental = await this.findOne(rentalId);
 
     // Free up the room if rental is active
     if (rental.isActive) {
-      const room = await this.propertiesService.findRoomById(rental.roomId);
+      const room = await this.propertiesService.findRoomById(
+        rental.propertyId,
+        roomId,
+      );
       room.available = true;
-      await this.propertiesService.updateRoom(room.id, { available: true });
+      await this.propertiesService.updateRoom(room.propertyId, room.id, {
+        available: true,
+      });
     }
 
     await this.rentalRepository.remove(rental);
