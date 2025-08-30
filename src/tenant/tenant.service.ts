@@ -52,7 +52,10 @@ export class TenantService {
     });
 
     if (room.available_count < 1) {
-      await this.roomRepository.update(room.id, { status: 'OCCUPIED' });
+      await this.roomRepository.update(room.id, {
+        status: 'OCCUPIED',
+        available_count: 0,
+      });
     } else {
       await this.roomRepository.update(room.id, {
         available_count: room.available_count - 1,
