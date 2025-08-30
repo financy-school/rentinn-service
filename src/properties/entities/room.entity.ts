@@ -40,6 +40,9 @@ export class Room {
   @Column({ nullable: true, default: 0 })
   bedCount: number;
 
+  @Column({ type: 'varchar', length: 200, default: null, nullable: true })
+  status: string;
+
   @Column({ nullable: true, default: 0 })
   bathroomCount: number;
 

@@ -153,6 +153,7 @@ export class PropertiesService {
     new_room.propertyId = propertyId;
     new_room.property = property;
     new_room.description = createRoomDto.description;
+    new_room.status = 'VACANT';
 
     const newRoom = this.roomRepository.create(new_room);
 
