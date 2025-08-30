@@ -52,6 +52,18 @@ export class Tenant {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   rent_amount: number;
 
+  @Column({ type: 'boolean', default: false })
+  has_dues: boolean;
+
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: false,
+    default: 0,
+  })
+  due_amount: number;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
