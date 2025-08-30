@@ -14,7 +14,17 @@ export class TicketsService {
   ) {}
 
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
-    const ticket = this.ticketRepository.create(createTicketDto);
+    const ticket = new Ticket();
+
+    ticket.id = new Date().getTime().toString();
+    ticket.issue = createTicketDto.issue;
+    ticket.description = createTicketDto.description;
+    ticket.raisedBy = createTicketDto.raisedBy;
+    ticket.status = createTicketDto.status;
+    ticket.roomId = createTicketDto.roomId;
+    ticket.propertyId = createTicketDto.propertyId;
+    ticket.image_document_id_list = createTicketDto.image_document_id_list;
+
     return this.ticketRepository.save(ticket);
   }
 
