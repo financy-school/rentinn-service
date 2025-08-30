@@ -191,7 +191,8 @@ export class TenantService {
   async remove(id: string): Promise<void> {
     const tenant = await this.findOne(id);
     tenant.is_active = false;
-    await this.tenantRepository.save(tenant);
+    tenant.is_deleted = true;
+    await this.tenantRepository.delete(id);
   }
 
   async findPropertyById(id: number): Promise<Property> {

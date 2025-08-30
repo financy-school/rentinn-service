@@ -55,6 +55,9 @@ export class Tenant {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  is_deleted: boolean;
+
   @ManyToOne(() => Room, (room) => room.id, {
     onDelete: 'SET NULL',
     nullable: true,
