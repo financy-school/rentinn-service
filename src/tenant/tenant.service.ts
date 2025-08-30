@@ -48,6 +48,7 @@ export class TenantService {
         : null,
       room,
       property_id: createTenantDto.propertyId,
+      image_id_list: createTenantDto.image_id_list,
     });
 
     return this.tenantRepository.save(tenant);

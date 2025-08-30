@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -57,4 +58,8 @@ export class CreateTenantDto {
   @IsString()
   @IsOptional()
   lockInPeriod?: string;
+
+  @IsObject()
+  @IsOptional()
+  image_id_list?: string[];
 }
