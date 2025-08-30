@@ -51,6 +51,14 @@ export class TenantService {
       image_id_list: createTenantDto.image_id_list,
     });
 
+    if (room.available_count < 1) {
+      await this.roomRepository.update(room.id, { status: 'OCCUPIED' });
+    } else {
+      await this.roomRepository.update(room.id, {
+        available_count: room.available_count - 1,
+      });
+    }
+
     return this.tenantRepository.save(tenant);
   }
 

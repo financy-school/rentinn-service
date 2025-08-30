@@ -46,6 +46,9 @@ export class Room {
   @Column({ nullable: true, default: 0 })
   bathroomCount: number;
 
+  @Column({ default: 0, nullable: false, type: 'int' })
+  available_count: number;
+
   @Column({ default: false })
   furnished: boolean;
 
