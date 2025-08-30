@@ -116,7 +116,7 @@ export class TenantsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.tenantsService.remove(id);
   }
