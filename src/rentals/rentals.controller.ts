@@ -151,10 +151,13 @@ export class RentalsController {
     return this.rentalsService.recordPayment(id, recordPaymentDto, req.user.id);
   }
 
-  @Delete(':id')
+  @Delete(':propertyId/property/:roomId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.rentalsService.remove(id);
+  remove(
+    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('roomId', ParseIntPipe) roomId: number,
+  ) {
+    return this.rentalsService.remove(propertyId, roomId);
   }
 }
