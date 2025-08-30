@@ -41,7 +41,7 @@ export class TicketsService {
     };
   }
 
-  async findOne(id: number): Promise<Ticket> {
+  async findOne(id: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
@@ -49,13 +49,13 @@ export class TicketsService {
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
+  async update(id: string, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
     Object.assign(ticket, updateTicketDto);
     return this.ticketRepository.save(ticket);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const ticket = await this.findOne(id);
     await this.ticketRepository.remove(ticket);
   }

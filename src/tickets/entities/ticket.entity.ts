@@ -8,11 +8,8 @@ import {
 
 @Entity()
 export class Ticket {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  userId: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   propertyId: number;
@@ -37,4 +34,7 @@ export class Ticket {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column('simple-array', { nullable: true, default: null })
+  image_document_id_list: string[];
 }
