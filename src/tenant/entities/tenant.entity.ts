@@ -64,7 +64,7 @@ export class Tenant {
   @Column({ type: 'date', nullable: false })
   check_in_date: Date;
 
-  @Column({ type: 'text', array: true, nullable: true, default: [] })
+  @Column('simple-array', { nullable: true })
   image_id_list: string[];
 
   @Column({ type: 'date', nullable: true })
