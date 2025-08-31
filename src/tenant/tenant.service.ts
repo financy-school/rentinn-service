@@ -49,6 +49,7 @@ export class TenantService {
       room,
       property_id: createTenantDto.propertyId,
       image_id_list: createTenantDto.image_id_list,
+      rent_amount: room.rentAmount,
     });
 
     if (room.available_count < 1) {
