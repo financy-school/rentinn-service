@@ -47,19 +47,19 @@ export class UsersService {
     await this.userRepository.save(newUser);
 
     // create a new entry in property table if the user is a landlord
-    if (createUserDto.role === UserRole.LANDLORD) {
-      const property = await this.propertyService.createProperty(newUser.id, {
-        name: `${newUser.firstName}'s Property`,
-        description: 'Default property created for landlord',
-        address: createUserDto.address || 'Default Address',
-        city: createUserDto.city || 'Default City',
-        state: createUserDto.state || 'Default State',
-        postalCode: createUserDto.postalCode || '00000',
-        country: createUserDto.country || 'Default Country',
-      });
-      newUser.properties = [property];
-      await this.userRepository.save(newUser);
-    }
+    // if (createUserDto.role === UserRole.LANDLORD) {
+    //   const property = await this.propertyService.createProperty(newUser.id, {
+    //     name: `${newUser.firstName}'s Property`,
+    //     description: 'Default property created for landlord',
+    //     address: createUserDto.address || 'Default Address',
+    //     city: createUserDto.city || 'Default City',
+    //     state: createUserDto.state || 'Default State',
+    //     postalCode: createUserDto.postalCode || '00000',
+    //     country: createUserDto.country || 'Default Country',
+    //   });
+    //   newUser.properties = [property];
+    //   await this.userRepository.save(newUser);
+    // }
 
     return newUser;
   }
