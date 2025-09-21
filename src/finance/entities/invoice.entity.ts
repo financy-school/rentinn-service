@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Rental } from '../../rentals/entities/rental.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
@@ -69,12 +70,12 @@ export class Invoice {
   lastReminderSent: Date;
 
   // Relationships
-  @ManyToOne(() => User, (user) => user.invoicesAsTenant)
+  @ManyToOne(() => Tenant, { eager: true })
   @JoinColumn({ name: 'tenantId' })
-  tenant: User;
+  tenant: Tenant;
 
   @Column()
-  tenantId: number;
+  tenantId: string; // Changed to string to match Tenant's UUID
 
   @ManyToOne(() => User, (user) => user.invoicesAsLandlord)
   @JoinColumn({ name: 'landlordId' })

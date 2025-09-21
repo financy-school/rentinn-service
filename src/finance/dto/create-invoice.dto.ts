@@ -15,8 +15,8 @@ import { InvoiceStatus } from '../entities/invoice.entity';
 
 export class CreateInvoiceDto {
   @IsNotEmpty()
-  @IsNumber()
-  tenantId: number;
+  @IsString()
+  tenantId: string; // Changed to string for UUID
 
   @IsOptional()
   @IsNumber()

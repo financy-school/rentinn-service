@@ -103,6 +103,16 @@ export class InvoiceController {
     return this.invoiceService.recordPayment(recordPaymentDto, req.user.id);
   }
 
+  @Get('tenants')
+  getAvailableTenants() {
+    return this.invoiceService.getAvailableTenants();
+  }
+
+  @Get('tenants/:id/info')
+  getTenantRentals(@Param('id') tenantId: string) {
+    return this.invoiceService.getTenantRentals(tenantId);
+  }
+
   @Post(':id/reminder')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)

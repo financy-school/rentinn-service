@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Room } from '../../properties/entities/room.entity';
 
@@ -90,4 +91,8 @@ export class Tenant {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  // Relationships
+  @OneToMany('Invoice', 'tenant')
+  invoices: any[];
 }

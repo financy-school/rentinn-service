@@ -8,9 +8,22 @@ import { Finance } from './entities/finance.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Payment } from '../rentals/entities/payment.entity';
+import { Rental } from '../rentals/entities/rental.entity';
+import { User } from '../users/entities/user.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Finance, Invoice, InvoiceItem, Payment])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Finance,
+      Invoice,
+      InvoiceItem,
+      Payment,
+      Rental,
+      User,
+      Tenant,
+    ]),
+  ],
   controllers: [FinanceController, InvoiceController],
   providers: [FinanceService, InvoiceService],
   exports: [InvoiceService],

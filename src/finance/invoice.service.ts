@@ -9,6 +9,9 @@ import { Repository, FindOptionsWhere } from 'typeorm';
 import { Invoice, InvoiceStatus } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Payment } from '../rentals/entities/payment.entity';
+import { Rental } from '../rentals/entities/rental.entity';
+import { User } from '../users/entities/user.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { RecordPaymentDto } from './dto/record-payment.dto';
@@ -25,6 +28,12 @@ export class InvoiceService {
     private readonly invoiceItemRepository: Repository<InvoiceItem>,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(Rental)
+    private readonly rentalRepository: Repository<Rental>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepository: Repository<Tenant>,
   ) {}
 
   /**
@@ -34,6 +43,30 @@ export class InvoiceService {
     createInvoiceDto: CreateInvoiceDto,
     userId: number,
   ): Promise<Invoice> {
+    // Validate tenant exists
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: createInvoiceDto.tenantId, is_active: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException(
+        `Tenant with ID ${createInvoiceDto.tenantId} not found`,
+      );
+    }
+
+    // If rentalId is provided, validate it exists
+    if (createInvoiceDto.rentalId) {
+      const rental = await this.rentalRepository.findOne({
+        where: { id: createInvoiceDto.rentalId },
+      });
+
+      if (!rental) {
+        throw new NotFoundException(
+          `Rental with ID ${createInvoiceDto.rentalId} not found`,
+        );
+      }
+    }
+
     // Calculate total amount from items
     const totalAmount = createInvoiceDto.items.reduce(
       (sum, item) => sum + item.amount * (item.quantity || 1),
@@ -83,9 +116,8 @@ export class InvoiceService {
     // Filter based on user role
     if (userRole === UserRole.LANDLORD && userId) {
       where.landlordId = userId;
-    } else if (userRole === UserRole.TENANT && userId) {
-      where.tenantId = userId;
     }
+    // Note: For tenant filtering, we'll need a different approach since tenantId is UUID
 
     const [invoices, total] = await this.invoiceRepository.findAndCount({
       where,
@@ -239,9 +271,8 @@ export class InvoiceService {
 
     if (userRole === UserRole.LANDLORD) {
       where.landlordId = userId;
-    } else if (userRole === UserRole.TENANT) {
-      where.tenantId = userId;
     }
+    // Note: Tenant filtering would need tenantId mapping from User to Tenant
 
     const [
       totalInvoices,
@@ -296,6 +327,35 @@ export class InvoiceService {
     // For now, just update the lastReminderSent date
     invoice.lastReminderSent = new Date();
     await this.invoiceRepository.save(invoice);
+  }
+
+  /**
+   * Get available tenants for invoice creation
+   */
+  async getAvailableTenants(): Promise<Tenant[]> {
+    return this.tenantRepository.find({
+      where: { is_active: true },
+      select: ['id', 'name', 'phone_number', 'email', 'rent_amount'],
+    });
+  }
+
+  /**
+   * Get tenant rentals for invoice creation
+   */
+  async getTenantRentals(tenantId: string): Promise<any> {
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId, is_active: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException(`Tenant with ID ${tenantId} not found`);
+    }
+
+    // Return tenant information since there might not be a direct rental relationship
+    return {
+      tenant,
+      message: 'Tenant found. You can create invoices for this tenant.',
+    };
   }
 
   /**

@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Rental } from './rental.entity';
 import { Invoice } from '../../finance/entities/invoice.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 
 @Entity('payments')
 export class Payment {
@@ -59,6 +60,14 @@ export class Payment {
 
   @Column({ nullable: true })
   invoiceId: number;
+
+  // Relationship with Tenant (for direct tenant payments)
+  @ManyToOne(() => Tenant, { nullable: true })
+  @JoinColumn({ name: 'tenantId' })
+  tenant: Tenant;
+
+  @Column({ nullable: true })
+  paymentTenantId: string; // UUID for tenant
 
   @CreateDateColumn()
   createdAt: Date;
