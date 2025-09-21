@@ -5,23 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
-import { AuthEntity } from './auth/entities/auth.entity';
 import { TenantModule } from './tenant/tenant.module';
 import { FinanceModule } from './finance/finance.module';
-import { Tenant } from './tenant/entities/tenant.entity';
-import { Finance } from './finance/entities/finance.entity';
-import { Kyc } from './kyc/entities/kyc.entity';
-import { Payment } from './rentals/entities/payment.entity';
-import { Rental } from './rentals/entities/rental.entity';
-import { User } from './users/entities/user.entity';
-import { Property } from './properties/entities/property.entity';
 import { PropertiesModule } from './properties/properties.module';
-import { Room } from './properties/entities/room.entity';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { TicketsModule } from './tickets/tickets.module';
-import { Ticket } from './tickets/entities/ticket.entity';
 import { DocumentsModule } from './documents/documents.module';
-import { DocumentEntity } from './documents/entities/document.entity';
+import * as Entities from './entities';
 
 @Module({
   controllers: [AppController],
@@ -43,17 +33,19 @@ import { DocumentEntity } from './documents/entities/document.entity';
           password: config.get('DB_PASSWORD'),
           database: config.get('DB_DATABASE'),
           entities: [
-            AuthEntity,
-            Property,
-            Room,
-            Tenant,
-            Finance,
-            Kyc,
-            Payment,
-            Rental,
-            User,
-            Ticket,
-            DocumentEntity,
+            Entities.AuthEntity,
+            Entities.Property,
+            Entities.Room,
+            Entities.Tenant,
+            Entities.Finance,
+            Entities.Invoice,
+            Entities.InvoiceItem,
+            Entities.Kyc,
+            Entities.Payment,
+            Entities.Rental,
+            Entities.User,
+            Entities.Ticket,
+            Entities.DocumentEntity,
           ],
           // synchronize: config.get('DB_SYNC'),
           synchronize: true,

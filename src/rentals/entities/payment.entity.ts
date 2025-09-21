@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Rental } from './rental.entity';
+import { Invoice } from '../../finance/entities/invoice.entity';
 
 @Entity('payments')
 export class Payment {
@@ -48,9 +49,13 @@ export class Payment {
   @Column()
   rentalId: number;
 
-  @ManyToOne('Invoice', 'payments', { nullable: true })
+  // Relationship with Invoice
+  @ManyToOne(() => Invoice, (invoice) => invoice.payments, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'invoiceId' })
-  invoice: any;
+  invoice: Invoice;
 
   @Column({ nullable: true })
   invoiceId: number;

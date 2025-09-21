@@ -11,6 +11,7 @@ import { UserRole } from '../../common/enums/user-role.enum';
 import { Property } from '../../properties/entities/property.entity';
 import { Rental } from '../../rentals/entities/rental.entity';
 import { Kyc } from '../../kyc/entities/kyc.entity';
+import { Invoice } from '../../finance/entities/invoice.entity';
 
 @Entity('users')
 export class User {
@@ -66,11 +67,11 @@ export class User {
   @OneToMany(() => Rental, (rental) => rental.tenant)
   rentalsAsTenant: Rental[];
 
-  @OneToMany('Invoice', 'tenant')
-  invoicesAsTenant: any[];
+  @OneToMany(() => Invoice, (invoice) => invoice.tenant)
+  invoicesAsTenant: Invoice[];
 
-  @OneToMany('Invoice', 'landlord')
-  invoicesAsLandlord: any[];
+  @OneToMany(() => Invoice, (invoice) => invoice.landlord)
+  invoicesAsLandlord: Invoice[];
 
   @OneToMany(() => Kyc, (kyc) => kyc.user)
   kycDocuments: Kyc[];

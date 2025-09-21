@@ -12,6 +12,7 @@ import { User } from '../../users/entities/user.entity';
 import { Payment } from './payment.entity';
 import { PaymentStatus } from '../../common/enums/payment-status.enum';
 import { Room } from '../../properties/entities/room.entity';
+import { Invoice } from '../../finance/entities/invoice.entity';
 
 @Entity('rentals')
 export class Rental {
@@ -71,8 +72,8 @@ export class Rental {
   @OneToMany(() => Payment, (payment) => payment.rental, { cascade: true })
   payments: Payment[];
 
-  @OneToMany('Invoice', 'rental')
-  invoices: any[];
+  @OneToMany(() => Invoice, (invoice) => invoice.rental)
+  invoices: Invoice[];
 
   @CreateDateColumn()
   createdAt: Date;

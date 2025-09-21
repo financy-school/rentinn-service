@@ -9,8 +9,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Payment } from '../../rentals/entities/payment.entity';
-
 import { Rental } from '../../rentals/entities/rental.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
@@ -95,8 +93,8 @@ export class Invoice {
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items: InvoiceItem[];
 
-  @OneToMany(() => Payment, (payment) => payment.invoice, { cascade: true })
-  payments: Payment[];
+  @OneToMany('Payment', 'invoice', { cascade: true })
+  payments: any[];
 
   @CreateDateColumn()
   createdAt: Date;
