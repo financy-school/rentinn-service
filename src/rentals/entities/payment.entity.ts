@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Rental } from './rental.entity';
 
 @Entity('payments')
@@ -33,12 +41,19 @@ export class Payment {
   @Column({ nullable: true })
   recordedBy: number;
 
-  @ManyToOne(() => Rental, rental => rental.payments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Rental, (rental) => rental.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'rentalId' })
   rental: Rental;
 
   @Column()
   rentalId: number;
+
+  @ManyToOne('Invoice', 'payments', { nullable: true })
+  @JoinColumn({ name: 'invoiceId' })
+  invoice: any;
+
+  @Column({ nullable: true })
+  invoiceId: number;
 
   @CreateDateColumn()
   createdAt: Date;

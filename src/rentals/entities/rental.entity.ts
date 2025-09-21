@@ -71,6 +71,9 @@ export class Rental {
   @OneToMany(() => Payment, (payment) => payment.rental, { cascade: true })
   payments: Payment[];
 
+  @OneToMany('Invoice', 'rental')
+  invoices: any[];
+
   @CreateDateColumn()
   createdAt: Date;
 

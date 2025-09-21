@@ -66,6 +66,12 @@ export class User {
   @OneToMany(() => Rental, (rental) => rental.tenant)
   rentalsAsTenant: Rental[];
 
+  @OneToMany('Invoice', 'tenant')
+  invoicesAsTenant: any[];
+
+  @OneToMany('Invoice', 'landlord')
+  invoicesAsLandlord: any[];
+
   @OneToMany(() => Kyc, (kyc) => kyc.user)
   kycDocuments: Kyc[];
 
