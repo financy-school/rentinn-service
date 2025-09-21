@@ -47,7 +47,7 @@ export class PropertiesService {
     userId?: number,
     userRole?: UserRole,
   ): Promise<PaginationResponse<Property>> {
-    const { page, limit } = paginationDto;
+    const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Property> = {};
