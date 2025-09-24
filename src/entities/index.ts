@@ -8,6 +8,7 @@ export { AuthEntity } from '../auth/entities/auth.entity';
 export { Kyc } from '../kyc/entities/kyc.entity';
 export { Ticket } from '../tickets/entities/ticket.entity';
 export { DocumentEntity } from '../documents/entities/document.entity';
+export { UserSettings } from '../settings/entities/user-settings.entity';
 
 // Dependent entities (have relationships)
 export { Rental } from '../rentals/entities/rental.entity';

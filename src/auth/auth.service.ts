@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { SettingsService } from '../settings/settings.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private settingsService: SettingsService,
     private jwtService: JwtService,
   ) {}
 
@@ -17,6 +19,10 @@ export class AuthService {
    */
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
+
+    // Create default settings for the new user
+    await this.settingsService.createDefaultSettings(user.id);
+
     const payload = {
       email: user.email,
       sub: user.id,
@@ -54,12 +60,20 @@ export class AuthService {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
     if (!user) {
+      // Track failed login attempt if user exists
+      const existingUser = await this.usersService.findByEmail(loginDto.email);
+      if (existingUser) {
+        await this.settingsService.updateLoginTracking(existingUser.id, false);
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!user.isActive) {
       throw new UnauthorizedException('User account is inactive');
     }
+
+    // Track successful login
+    await this.settingsService.updateLoginTracking(user.id, true);
 
     const payload = {
       email: user.email,

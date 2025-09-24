@@ -76,6 +76,9 @@ export class User {
   @OneToMany(() => Kyc, (kyc) => kyc.user)
   kycDocuments: Kyc[];
 
+  @OneToMany('UserSettings', 'user')
+  settings: any[];
+
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }

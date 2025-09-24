@@ -12,6 +12,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { RentalsModule } from './rentals/rentals.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { DocumentsModule } from './documents/documents.module';
+import { SettingsModule } from './settings/settings.module';
 import * as Entities from './entities';
 
 @Module({
@@ -45,6 +46,7 @@ import * as Entities from './entities';
             Entities.Payment,
             Entities.Rental,
             Entities.User,
+            Entities.UserSettings,
             Entities.Ticket,
             Entities.DocumentEntity,
           ],
@@ -63,6 +65,7 @@ import * as Entities from './entities';
     RentalsModule,
     TicketsModule,
     DocumentsModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}
