@@ -9,6 +9,7 @@ import { TenantModule } from './tenant/tenant.module';
 import { FinanceModule } from './finance/finance.module';
 import { PropertiesModule } from './properties/properties.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { RentalsModule } from './rentals/rentals.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { DocumentsModule } from './documents/documents.module';
 import * as Entities from './entities';
@@ -59,6 +60,7 @@ import * as Entities from './entities';
     AnalyticsModule,
     TenantModule,
     FinanceModule,
+    RentalsModule,
     TicketsModule,
     DocumentsModule,
   ],

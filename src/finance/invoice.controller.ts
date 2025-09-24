@@ -113,6 +113,13 @@ export class InvoiceController {
     return this.invoiceService.getTenantRentals(tenantId);
   }
 
+  @Get('tenants/:id/invoice-data')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  getTenantInvoiceData(@Param('id') tenantId: string) {
+    return this.invoiceService.getTenantInvoiceData(tenantId);
+  }
+
   @Post(':id/reminder')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)

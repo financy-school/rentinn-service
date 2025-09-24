@@ -397,4 +397,167 @@ export class InvoiceService {
 
     await this.invoiceRepository.save(invoice);
   }
+
+  /**
+   * Get tenant invoice data for the "Add Invoice" screen
+   * This includes tenant info, pending items from previous invoices, and rental details
+   */
+  async getTenantInvoiceData(tenantId: string) {
+    // Validate tenant exists
+    const tenant = await this.tenantRepository.findOne({
+      where: { id: tenantId, is_active: true },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
+    }
+
+    // Get all previous invoices for this tenant (unpaid and partially paid)
+    const previousInvoices = await this.invoiceRepository.find({
+      where: [
+        { tenantId, status: InvoiceStatus.SENT },
+        { tenantId, status: InvoiceStatus.PARTIALLY_PAID },
+        { tenantId, status: InvoiceStatus.OVERDUE },
+      ],
+      relations: ['items', 'payments'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // Extract pending items from previous invoices
+    const pendingItems: any[] = [];
+    let totalPendingAmount = 0;
+
+    previousInvoices.forEach((invoice) => {
+      const invoiceOutstanding = invoice.totalAmount - invoice.paidAmount;
+
+      if (invoiceOutstanding > 0) {
+        invoice.items.forEach((item) => {
+          // Calculate what portion of this item is still unpaid
+          const itemPaidRatio = invoice.paidAmount / invoice.totalAmount;
+          const itemPendingAmount = item.amount * (1 - itemPaidRatio);
+
+          if (itemPendingAmount > 0) {
+            pendingItems.push({
+              originalInvoiceId: invoice.id,
+              originalInvoiceNumber: invoice.invoiceNumber,
+              originalDueDate: invoice.dueDate,
+              itemId: item.id,
+              category: item.category,
+              description: item.description,
+              originalAmount: item.amount,
+              pendingAmount: Math.round(itemPendingAmount * 100) / 100,
+              existingDues: item.existingDues,
+              existingDueDate: item.existingDueDate,
+              dueDate: item.dueDate,
+              isFixed: item.isFixed,
+              daysSinceOriginalDue: Math.floor(
+                (new Date().getTime() - new Date(invoice.dueDate).getTime()) /
+                  (1000 * 60 * 60 * 24),
+              ),
+            });
+
+            totalPendingAmount += itemPendingAmount;
+          }
+        });
+      }
+    });
+
+    // Get suggested recurring items
+    const suggestedItems = [
+      {
+        category: 'RENT',
+        description: `Monthly rent for ${new Date().toLocaleDateString(
+          'en-US',
+          {
+            month: 'long',
+            year: 'numeric',
+          },
+        )}`,
+        amount: tenant.rent_amount || 1500,
+        isFixed: true,
+        dueDate: new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          5,
+        ),
+      },
+      {
+        category: 'MAINTENANCE',
+        description: 'Monthly maintenance charges',
+        amount: 200,
+        isFixed: true,
+        dueDate: new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() + 1,
+          5,
+        ),
+      },
+    ];
+
+    // Calculate tenant's payment history summary
+    const paymentHistory = await this.paymentRepository.find({
+      where: { paymentTenantId: tenantId },
+      order: { createdAt: 'DESC' },
+      take: 5,
+    });
+
+    const paymentSummary = {
+      totalPayments: paymentHistory.length,
+      totalAmountPaid: paymentHistory.reduce(
+        (sum, payment) => sum + Number(payment.amount),
+        0,
+      ),
+      lastPaymentDate: paymentHistory[0]?.createdAt || null,
+      lastPaymentAmount: paymentHistory[0]?.amount || 0,
+      averagePaymentAmount:
+        paymentHistory.length > 0
+          ? Math.round(
+              (paymentHistory.reduce(
+                (sum, payment) => sum + Number(payment.amount),
+                0,
+              ) /
+                paymentHistory.length) *
+                100,
+            ) / 100
+          : 0,
+    };
+
+    return {
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        phone_number: tenant.phone_number,
+        email: tenant.email,
+        tenant_type: tenant.tenant_type,
+        property_id: tenant.property_id,
+        rent_amount: tenant.rent_amount,
+        has_dues: tenant.has_dues,
+        due_amount: tenant.due_amount,
+        is_active: tenant.is_active,
+        check_in_date: tenant.check_in_date,
+      },
+      pendingItems: {
+        items: pendingItems,
+        totalCount: pendingItems.length,
+        totalPendingAmount: Math.round(totalPendingAmount * 100) / 100,
+        invoicesCount: previousInvoices.length,
+      },
+      suggestedItems,
+      paymentHistory: {
+        summary: paymentSummary,
+        recentPayments: paymentHistory.map((payment) => ({
+          id: payment.id,
+          amount: payment.amount,
+          paymentDate: payment.createdAt,
+          paymentMethod: payment.paymentMethod,
+          transactionId: payment.transactionId,
+        })),
+      },
+      invoiceGeneration: {
+        nextInvoiceNumber: this.generateInvoiceNumber(),
+        suggestedDueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+        defaultIssueDate: new Date(),
+      },
+    };
+  }
 }
