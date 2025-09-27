@@ -24,8 +24,6 @@ export class AnalyticsService {
     private readonly propertyRepository: Repository<Property>,
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
   ) {}
@@ -299,7 +297,9 @@ export class AnalyticsService {
       .andWhere('payment.paymentDate >= :monthsAgo', { monthsAgo });
 
     if (propertyId) {
-      monthlyIncomeQuery.andWhere('property.id = :propertyId', { propertyId });
+      monthlyIncomeQuery.andWhere('property.property_id = :propertyId', {
+        propertyId,
+      });
     }
 
     const monthlyIncomeResult = await monthlyIncomeQuery
@@ -561,7 +561,7 @@ export class AnalyticsService {
       .where('property.ownerId = :landlordId', { landlordId });
 
     if (propertyId) {
-      roomsQuery.andWhere('property.id = :propertyId', { propertyId });
+      roomsQuery.andWhere('property.property_id = :propertyId', { propertyId });
     }
 
     const rooms = await roomsQuery.getMany();
@@ -602,7 +602,7 @@ export class AnalyticsService {
       .where('property.ownerId = :ownerId', { ownerId: landlordId });
 
     if (propertyId) {
-      roomsQuery.andWhere('property.id = :propertyId', { propertyId });
+      roomsQuery.andWhere('property.property_id = :propertyId', { propertyId });
     }
 
     const totalRooms = await roomsQuery.getCount();
@@ -615,7 +615,9 @@ export class AnalyticsService {
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
     if (propertyId) {
-      occupiedQuery.andWhere('property.id = :propertyId', { propertyId });
+      occupiedQuery.andWhere('property.property_id = :propertyId', {
+        propertyId,
+      });
     }
 
     const occupiedRooms = await occupiedQuery.getCount();
@@ -645,7 +647,9 @@ export class AnalyticsService {
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
     if (propertyId) {
-      rentalsQuery.andWhere('property.id = :propertyId', { propertyId });
+      rentalsQuery.andWhere('property.property_id = :propertyId', {
+        propertyId,
+      });
     }
 
     const activeRentals = await rentalsQuery.getMany();
@@ -667,7 +671,9 @@ export class AnalyticsService {
       });
 
     if (propertyId) {
-      paymentsQuery.andWhere('property.id = :propertyId', { propertyId });
+      paymentsQuery.andWhere('property.property_id = :propertyId', {
+        propertyId,
+      });
     }
 
     const paymentsResult = await paymentsQuery
@@ -687,7 +693,9 @@ export class AnalyticsService {
       });
 
     if (propertyId) {
-      overdueQuery.andWhere('property.id = :propertyId', { propertyId });
+      overdueQuery.andWhere('property.property_id = :propertyId', {
+        propertyId,
+      });
     }
 
     const overdueResult = await overdueQuery
