@@ -255,7 +255,7 @@ export class PropertiesService {
       .leftJoin('room.rentals', 'rental', 'rental.isActive = :isActive', {
         isActive: true,
       })
-      .andWhere('rental.id IS NULL') // No active rentals
+      .andWhere('rental.rental_id IS NULL') // No active rentals
       .leftJoinAndSelect('room.property', 'property');
 
     const [rooms, total] = await queryBuilder

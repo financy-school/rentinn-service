@@ -34,23 +34,26 @@ export class TicketsController {
   }
 
   // Get a ticket by ID
-  @Get(':id')
+  @Get(':ticket_id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.ticketsService.findOne(id);
+  findOne(@Param('ticket_id') ticket_id: string) {
+    return this.ticketsService.findOne(ticket_id);
   }
 
   // Update a ticket by ID
-  @Patch(':id')
+  @Patch(':ticket_id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
-    return this.ticketsService.update(id, updateTicketDto);
+  update(
+    @Param('ticket_id') ticket_id: string,
+    @Body() updateTicketDto: UpdateTicketDto,
+  ) {
+    return this.ticketsService.update(ticket_id, updateTicketDto);
   }
 
   // Delete a ticket by ID
-  @Delete(':id')
+  @Delete(':ticket_id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.ticketsService.remove(id);
+  remove(@Param('ticket_id') ticket_id: string) {
+    return this.ticketsService.remove(ticket_id);
   }
 }

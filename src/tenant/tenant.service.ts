@@ -138,13 +138,13 @@ export class TenantService {
   }
 
   async findByProperty(
-    propertyId: number,
+    property_id: string,
     { page = 1, limit = 10 }: PaginationDto,
   ): Promise<Tenant[]> {
     return this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.room', 'room')
-      .where('room.property_id = :propertyId', { propertyId })
+      .where('room.property_id = :property_id', { property_id })
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('tenant.created_at', 'DESC')
@@ -161,8 +161,11 @@ export class TenantService {
     return tenant;
   }
 
-  async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
-    const tenant = await this.findOne(id);
+  async update(
+    tenant_id: string,
+    updateTenantDto: UpdateTenantDto,
+  ): Promise<Tenant> {
+    const tenant = await this.findOne(tenant_id);
 
     if (updateTenantDto.room_id) {
       const room = await this.roomRepository.findOne({
@@ -190,8 +193,8 @@ export class TenantService {
     return this.tenantRepository.save(tenant);
   }
 
-  async checkOut(id: string, checkOutDate?: string): Promise<Tenant> {
-    const tenant = await this.findOne(id);
+  async checkOut(tenant_id: string, checkOutDate?: string): Promise<Tenant> {
+    const tenant = await this.findOne(tenant_id);
 
     if (tenant.check_out_date)
       throw new BadRequestException('Tenant already checked out');
@@ -203,11 +206,11 @@ export class TenantService {
     return this.tenantRepository.save(tenant);
   }
 
-  async remove(id: string): Promise<void> {
-    const tenant = await this.findOne(id);
+  async remove(tenant_id: string): Promise<void> {
+    const tenant = await this.findOne(tenant_id);
     tenant.is_active = false;
     tenant.is_deleted = true;
-    await this.tenantRepository.delete(id);
+    await this.tenantRepository.delete(tenant_id);
   }
 
   async findPropertyById(property_id: string): Promise<Property> {
@@ -230,7 +233,7 @@ export class TenantService {
     return this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.room', 'room')
-      .where('room.id = :roomId', { roomId })
+      .where('room.room_id = :roomId', { roomId })
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('tenant.created_at', 'DESC')
@@ -238,23 +241,23 @@ export class TenantService {
   }
 
   async findByPropertyAndRoom(
-    propertyId: number,
-    roomId: number,
+    propertyId: string,
+    roomId: string,
     { page = 1, limit = 10 }: PaginationDto,
   ): Promise<Tenant[]> {
     return this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.room', 'room')
-      .where('room.id = :roomId', { roomId })
-      .andWhere('room.propertyId = :propertyId', { propertyId })
+      .where('room.room_id = :roomId', { roomId })
+      .andWhere('room.property_id = :propertyId', { propertyId })
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('tenant.created_at', 'DESC')
       .getMany();
   }
 
-  async putOnNotice(id: string): Promise<Tenant> {
-    const tenant = await this.findOne(id);
+  async putOnNotice(tenant_id: string): Promise<Tenant> {
+    const tenant = await this.findOne(tenant_id);
     tenant.is_on_notice = true;
     return this.tenantRepository.save(tenant);
   }

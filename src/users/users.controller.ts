@@ -64,13 +64,13 @@ export class UsersController {
     return this.usersService.remove(user_id);
   }
 
-  @Get('landlord/:id/tenants')
+  @Get('landlord/:user_id/tenants')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   findTenants(
-    @Param('user_id') landlordId: string,
+    @Param('user_id') landlord_user_id: string,
     @Query() paginationDto: PaginationDto,
   ): Promise<PaginationResponse<User>> {
-    return this.usersService.findTenants(landlordId, paginationDto);
+    return this.usersService.findTenants(landlord_user_id, paginationDto);
   }
 }

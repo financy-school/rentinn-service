@@ -53,33 +53,33 @@ export class KycController {
     return this.kycService.findPendingVerifications(paginationDto);
   }
 
-  @Get(':id')
+  @Get(':kyc_id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.kycService.findOne(id);
+  findOne(@Param('kyc_id') kyc_id: string) {
+    return this.kycService.findOne(kyc_id);
   }
 
-  @Patch(':id')
+  @Patch(':kyc_id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   update(
-    @Param('id') id: string,
+    @Param('kyc_id') kyc_id: string,
     @Body() updateKycDto: UpdateKycDto,
     @Request() req: any,
   ) {
     return this.kycService.verify(
-      id,
+      kyc_id,
       req.user.user_id,
       updateKycDto.status,
       updateKycDto.verificationNotes,
     );
   }
 
-  @Delete(':id')
+  @Delete(':kyc_id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async remove(@Param('id') id: string) {
-    return this.kycService.remove(id);
+  async remove(@Param('kyc_id') kyc_id: string) {
+    return this.kycService.remove(kyc_id);
   }
 }

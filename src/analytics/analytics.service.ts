@@ -5,7 +5,6 @@ import { Rental } from '../rentals/entities/rental.entity';
 import { Payment } from '../rentals/entities/payment.entity';
 import { Property } from '../properties/entities/property.entity';
 import { Room } from '../properties/entities/room.entity';
-import { User } from '../users/entities/user.entity';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import {
   DashboardAnalyticsQueryDto,
@@ -33,7 +32,7 @@ export class AnalyticsService {
    */
   async getDashboardAnalytics(query: DashboardAnalyticsQueryDto, user: any) {
     const { property_id, date_range, start_date, end_date } = query;
-    const landlordId = user.id;
+    const landlordId = user.user_id;
 
     // Convert property_id string to number if provided
     const propertyId = property_id ?? undefined;
@@ -89,7 +88,7 @@ export class AnalyticsService {
    * Get occupancy analytics
    */
   async getOccupancyAnalytics(query: any, user: any) {
-    const landlordId = user.id;
+    const landlordId = user.user_id;
     const propertyId = query.property_id ?? undefined;
 
     const occupancyStats = await this.getOccupancyStatistics(
@@ -110,7 +109,7 @@ export class AnalyticsService {
    * Get revenue trends
    */
   async getRevenueTrends(query: any, user: any) {
-    const landlordId = user.id;
+    const landlordId = user.user_id;
     const propertyId = query.property_id ?? undefined;
     const months = query.months || 5;
 
@@ -121,7 +120,7 @@ export class AnalyticsService {
    * Get profit and loss analytics
    */
   async getProfitLossAnalytics(query: any, user: any) {
-    const landlordId = user.id;
+    const landlordId = user.user_id;
     const propertyId = query.property_id ?? undefined;
     const { date_range, start_date, end_date } = query;
 
@@ -738,7 +737,7 @@ export class AnalyticsService {
       });
 
     const overdueTenants = await overdueTenantsQuery
-      .distinctOn(['user.id'])
+      .distinctOn(['tenant.tenant_id'])
       .getCount();
 
     return {

@@ -206,14 +206,14 @@ export class RentalsService {
   /**
    * Find a specific rental by ID
    */
-  async findOne(id: string): Promise<Rental> {
+  async findOne(rental_id: string): Promise<Rental> {
     const rental = await this.rentalRepository.findOne({
-      where: { rental_id: id },
+      where: { rental_id },
       relations: ['tenant', 'room', 'room.property', 'payments'],
     });
 
     if (!rental) {
-      throw new NotFoundException(`Rental with ID ${id} not found`);
+      throw new NotFoundException(`Rental with ID ${rental_id} not found`);
     }
 
     return rental;
@@ -222,8 +222,11 @@ export class RentalsService {
   /**
    * Update a rental
    */
-  async update(id: string, updateRentalDto: UpdateRentalDto): Promise<Rental> {
-    const rental = await this.findOne(id);
+  async update(
+    rental_id: string,
+    updateRentalDto: UpdateRentalDto,
+  ): Promise<Rental> {
+    const rental = await this.findOne(rental_id);
 
     // Handle date conversions if present
     if (updateRentalDto.startDate) {

@@ -526,7 +526,7 @@ export class InvoiceService {
 
     return {
       tenant: {
-        id: tenant.tenant_id,
+        tenant_id: tenant.tenant_id,
         name: tenant.name,
         phone_number: tenant.phone_number,
         email: tenant.email,
@@ -548,7 +548,7 @@ export class InvoiceService {
       paymentHistory: {
         summary: paymentSummary,
         recentPayments: paymentHistory.map((payment) => ({
-          id: payment.payment_id,
+          payment_id: payment.payment_id,
           amount: payment.amount,
           paymentDate: payment.createdAt,
           paymentMethod: payment.paymentMethod,

@@ -55,8 +55,8 @@ export class TenantsController {
   @Get('property/:propertyId/room/:roomId')
   @UseGuards(JwtAuthGuard)
   findByPropertyAndRoom(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
-    @Param('roomId', ParseIntPipe) roomId: number,
+    @Param('propertyId') propertyId: string,
+    @Param('roomId') roomId: string,
     @Query() paginationDto: PaginationDto,
   ) {
     return this.tenantsService.findByPropertyAndRoom(
@@ -75,49 +75,52 @@ export class TenantsController {
     return this.tenantsService.searchTenants(query, paginationDto);
   }
 
-  @Get('property/:propertyId')
+  @Get('property/:property_id')
   @UseGuards(JwtAuthGuard)
   findByProperty(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
+    @Param('property_id') property_id: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.tenantsService.findByProperty(propertyId, paginationDto);
+    return this.tenantsService.findByProperty(property_id, paginationDto);
   }
 
-  @Get(':id')
+  @Get(':tenant_id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.tenantsService.findOne(id);
+  findOne(@Param('tenant_id') tenant_id: string) {
+    return this.tenantsService.findOne(tenant_id);
   }
 
-  @Patch(':id')
+  @Patch(':tenant_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
-    return this.tenantsService.update(id, updateTenantDto);
+  update(
+    @Param('tenant_id') tenant_id: string,
+    @Body() updateTenantDto: UpdateTenantDto,
+  ) {
+    return this.tenantsService.update(tenant_id, updateTenantDto);
   }
 
-  @Patch(':id/notice')
+  @Patch(':tenant_id/notice')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  putOnNotice(@Param('id') id: string) {
-    return this.tenantsService.putOnNotice(id);
+  putOnNotice(@Param('tenant_id') tenant_id: string) {
+    return this.tenantsService.putOnNotice(tenant_id);
   }
 
-  @Patch(':id/checkout')
+  @Patch(':tenant_id/checkout')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   checkOut(
-    @Param('id') id: string,
+    @Param('tenant_id') tenant_id: string,
     @Query('checkOutDate') checkOutDate?: string,
   ) {
-    return this.tenantsService.checkOut(id, checkOutDate);
+    return this.tenantsService.checkOut(tenant_id, checkOutDate);
   }
 
-  @Delete(':id')
+  @Delete(':tenant_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.tenantsService.remove(id);
+  remove(@Param('tenant_id') tenant_id: string) {
+    return this.tenantsService.remove(tenant_id);
   }
 }

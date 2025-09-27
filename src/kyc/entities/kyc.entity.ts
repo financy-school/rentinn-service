@@ -11,8 +11,8 @@ import { KycStatus } from '../../common/enums/kyc-status.enum';
 
 @Entity('kyc_documents')
 export class Kyc {
-  @Column({ primary: true, type: 'varchar' })
-  id: string;
+  @Column({ primary: true, type: 'varchar', length: 70 })
+  kyc_id: string;
 
   @Column()
   documentType: string;

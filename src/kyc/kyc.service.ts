@@ -38,7 +38,7 @@ export class KycService {
     }
 
     const newKyc = this.kycRepository.create({
-      id: `KYC-${uuidv7()}`,
+      kyc_id: `KYC-${uuidv7()}`,
       ...createKycDto,
       tenantId: createKycDto.tenantId,
     });
@@ -109,14 +109,14 @@ export class KycService {
   /**
    * Find a specific KYC document by ID
    */
-  async findOne(id: string): Promise<Kyc> {
+  async findOne(kyc_id: string): Promise<Kyc> {
     const kyc = await this.kycRepository.findOne({
-      where: { id },
+      where: { kyc_id },
       relations: ['tenant'],
     });
 
     if (!kyc) {
-      throw new NotFoundException(`KYC document with ID ${id} not found`);
+      throw new NotFoundException(`KYC document with ID ${kyc_id} not found`);
     }
 
     return kyc;
@@ -125,8 +125,8 @@ export class KycService {
   /**
    * Update a KYC document
    */
-  async update(id: string, updateKycDto: UpdateKycDto): Promise<Kyc> {
-    const kyc = await this.findOne(id);
+  async update(kyc_id: string, updateKycDto: UpdateKycDto): Promise<Kyc> {
+    const kyc = await this.findOne(kyc_id);
 
     // If status is changing to VERIFIED, record verification details
     if (
@@ -144,12 +144,12 @@ export class KycService {
    * Verify a KYC document
    */
   async verify(
-    id: string,
+    kyc_id: string,
     adminId: number,
     status: KycStatus,
     notes?: string,
   ): Promise<Kyc> {
-    const kyc = await this.findOne(id);
+    const kyc = await this.findOne(kyc_id);
 
     // Cannot verify already verified or rejected documents
     if (kyc.status !== KycStatus.PENDING) {
@@ -167,8 +167,8 @@ export class KycService {
   /**
    * Remove a KYC document
    */
-  async remove(id: string): Promise<void> {
-    const kyc = await this.findOne(id);
+  async remove(kyc_id: string): Promise<void> {
+    const kyc = await this.findOne(kyc_id);
     await this.kycRepository.remove(kyc);
   }
 

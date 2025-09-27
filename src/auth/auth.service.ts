@@ -76,11 +76,11 @@ export class AuthService {
     }
 
     // Track successful login
-    await this.settingsService.updateLoginTracking(user.id, true);
+    await this.settingsService.updateLoginTracking(user.user_id, true);
 
     const payload = {
       email: user.email,
-      sub: user.id,
+      sub: user.user_id,
       role: user.role,
     };
 

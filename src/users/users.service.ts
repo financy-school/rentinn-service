@@ -48,21 +48,6 @@ export class UsersService {
 
     await this.userRepository.save(newUser);
 
-    // create a new entry in property table if the user is a landlord
-    // if (createUserDto.role === UserRole.LANDLORD) {
-    //   const property = await this.propertyService.createProperty(newUser.id, {
-    //     name: `${newUser.firstName}'s Property`,
-    //     description: 'Default property created for landlord',
-    //     address: createUserDto.address || 'Default Address',
-    //     city: createUserDto.city || 'Default City',
-    //     state: createUserDto.state || 'Default State',
-    //     postalCode: createUserDto.postalCode || '00000',
-    //     country: createUserDto.country || 'Default Country',
-    //   });
-    //   newUser.properties = [property];
-    //   await this.userRepository.save(newUser);
-    // }
-
     return newUser;
   }
 
@@ -128,12 +113,9 @@ export class UsersService {
     let property_id: string;
     // If the user is a landlord, load their properties
     if (user.role === UserRole.LANDLORD) {
-      // Load properties for landlords with explicit selection of the id field
       property_id = (
         await this.propertyService.findPropertiesByOwnerId(user.user_id)
       ).property_id;
-
-      // Ensure each property has an id in the response
     }
 
     return { ...user, property_id };
@@ -169,8 +151,8 @@ export class UsersService {
   /**
    * Delete a user
    */
-  async remove(id: string): Promise<void> {
-    const user = await this.findOne(id);
+  async remove(user_id: string): Promise<void> {
+    const user = await this.findOne(user_id);
     await this.userRepository.remove(user);
   }
 
