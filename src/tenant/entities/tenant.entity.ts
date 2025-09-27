@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Room } from '../../properties/entities/room.entity';
 import { Kyc } from '../../kyc/entities/kyc.entity';
+import { Rental } from '../../rentals/entities/rental.entity';
 import { Invoice } from '../../entities';
 
 @Entity('tenant')
@@ -97,6 +98,9 @@ export class Tenant {
 
   @OneToMany(() => Kyc, (kyc) => kyc.tenant)
   kycDocuments: Kyc[];
+
+  @OneToMany(() => Rental, (rental) => rental.tenant)
+  rentals: Rental[];
 
   @CreateDateColumn()
   created_at: Date;
