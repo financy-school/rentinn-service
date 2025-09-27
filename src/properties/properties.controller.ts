@@ -33,7 +33,7 @@ export class PropertiesController {
     @Body() createPropertyDto: CreatePropertyDto,
   ) {
     return this.propertiesService.createProperty(
-      req.user.id,
+      req.user.user_id,
       createPropertyDto,
     );
   }
@@ -46,7 +46,7 @@ export class PropertiesController {
   ) {
     return this.propertiesService.findAllProperties(
       paginationDto,
-      req.user.id,
+      req.user.user_id,
       req.user.role,
     );
   }

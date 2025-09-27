@@ -32,21 +32,27 @@ export class InvoiceController {
     @Request() req: any,
     @Body() createInvoiceDto: CreateInvoiceDto,
   ) {
-    return this.invoiceService.createInvoice(createInvoiceDto, req.user.id);
+    return this.invoiceService.createInvoice(
+      createInvoiceDto,
+      req.user.user_id,
+    );
   }
 
   @Get()
   findAllInvoices(@Query() paginationDto: PaginationDto, @Request() req: any) {
     return this.invoiceService.findAllInvoices(
       paginationDto,
-      req.user.id,
+      req.user.user_id,
       req.user.role,
     );
   }
 
   @Get('statistics')
   getInvoiceStatistics(@Request() req: any) {
-    return this.invoiceService.getInvoiceStatistics(req.user.id, req.user.role);
+    return this.invoiceService.getInvoiceStatistics(
+      req.user.user_id,
+      req.user.role,
+    );
   }
 
   @Get(':invoice_id')
@@ -67,7 +73,7 @@ export class InvoiceController {
     return this.invoiceService.updateInvoice(
       invoice_id,
       updateInvoiceDto,
-      req.user.id,
+      req.user.user_id,
       req.user.role,
     );
   }
@@ -78,7 +84,7 @@ export class InvoiceController {
   deleteInvoice(@Param('invoice_id') invoice_id: string, @Request() req: any) {
     return this.invoiceService.deleteInvoice(
       invoice_id,
-      req.user.id,
+      req.user.user_id,
       req.user.role,
     );
   }
@@ -90,7 +96,10 @@ export class InvoiceController {
     @Body() recordPaymentDto: RecordPaymentDto,
     @Request() req: any,
   ) {
-    return this.invoiceService.recordPayment(recordPaymentDto, req.user.id);
+    return this.invoiceService.recordPayment(
+      recordPaymentDto,
+      req.user.user_id,
+    );
   }
 
   @Get('tenants')
@@ -117,6 +126,9 @@ export class InvoiceController {
     @Param('invoice_id') invoice_id: string,
     @Request() req: any,
   ) {
-    return this.invoiceService.sendInvoiceReminder(invoice_id, req.user.id);
+    return this.invoiceService.sendInvoiceReminder(
+      invoice_id,
+      req.user.user_id,
+    );
   }
 }

@@ -45,7 +45,10 @@ export class RentalsController {
     @Query() paginationDto: PaginationDto,
     @Request() req: any,
   ) {
-    return this.rentalsService.findLandlordRentals(req.user.id, paginationDto);
+    return this.rentalsService.findLandlordRentals(
+      req.user.user_id,
+      paginationDto,
+    );
   }
 
   @Get('tenant')
@@ -55,7 +58,10 @@ export class RentalsController {
     @Query() paginationDto: PaginationDto,
     @Request() req: any,
   ) {
-    return this.rentalsService.findTenantRentals(req.user.id, paginationDto);
+    return this.rentalsService.findTenantRentals(
+      req.user.user_id,
+      paginationDto,
+    );
   }
 
   @Get('overdue')

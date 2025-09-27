@@ -70,7 +70,7 @@ export class KycController {
   ) {
     return this.kycService.verify(
       id,
-      req.user.id,
+      req.user.user_id,
       updateKycDto.status,
       updateKycDto.verificationNotes,
     );

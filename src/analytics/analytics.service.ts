@@ -513,7 +513,7 @@ export class AnalyticsService {
     // Get top tenants based on payment behavior
     const topTenantsQuery = this.tenantRepository
       .createQueryBuilder('tenant')
-      .innerJoin('tenant.rentalsAsTenant', 'rental')
+      .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })
@@ -708,7 +708,7 @@ export class AnalyticsService {
   private async getTenantStatistics(landlordId: string) {
     const tenantsQuery = this.tenantRepository
       .createQueryBuilder('tenant')
-      .innerJoin('tenant.rentalsAsTenant', 'rental')
+      .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })
@@ -720,7 +720,7 @@ export class AnalyticsService {
 
     const overdueTenantsQuery = this.tenantRepository
       .createQueryBuilder('tenant')
-      .innerJoin('tenant.rentalsAsTenant', 'rental')
+      .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })
