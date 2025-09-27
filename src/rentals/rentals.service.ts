@@ -16,7 +16,7 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import { PropertiesService } from '../properties/properties.service';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycService } from '../kyc/kyc.service';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7 } from 'uuid';
 
 @Injectable()
 export class RentalsService {
@@ -82,7 +82,7 @@ export class RentalsService {
       const newRental = this.rentalRepository.create({
         ...createRentalDto,
         outstandingAmount,
-        rental_id: `RENTAL-${uuidv4()}`,
+        rental_id: `RENTAL-${uuidv7()}`,
         startDate: new Date(createRentalDto.startDate),
         endDate: createRentalDto.endDate
           ? new Date(createRentalDto.endDate)
