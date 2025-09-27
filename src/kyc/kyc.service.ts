@@ -1,27 +1,46 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Kyc } from './entities/kyc.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { CreateKycDto } from './dto/create-kyc.dto';
 import { UpdateKycDto } from './dto/update-kyc.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { KycStatus } from '../common/enums/kyc-status.enum';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class KycService {
   constructor(
     @InjectRepository(Kyc)
     private readonly kycRepository: Repository<Kyc>,
+    @InjectRepository(Tenant)
+    private readonly tenantRepository: Repository<Tenant>,
   ) {}
 
   /**
-   * Create a new KYC document for a user
+   * Create a new KYC document for a tenant
    */
-  async create(userId: number, createKycDto: CreateKycDto): Promise<Kyc> {
+  async create(createKycDto: CreateKycDto): Promise<Kyc> {
+    // Verify tenant exists
+    const tenant = await this.tenantRepository.findOne({
+      where: { tenant_id: createKycDto.tenantId },
+    });
+    if (!tenant) {
+      throw new NotFoundException(
+        `Tenant with ID ${createKycDto.tenantId} not found`,
+      );
+    }
+
     const newKyc = this.kycRepository.create({
+      id: uuidv4(),
       ...createKycDto,
-      userId,
+      tenantId: createKycDto.tenantId,
     });
 
     return this.kycRepository.save(newKyc);
@@ -30,12 +49,14 @@ export class KycService {
   /**
    * Find all KYC documents with pagination
    */
-  async findAll(paginationDto: PaginationDto): Promise<PaginationResponse<Kyc>> {
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginationResponse<Kyc>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
-      relations: ['user'],
+      relations: ['tenant'],
       skip,
       take: limit,
       order: {
@@ -55,14 +76,18 @@ export class KycService {
   }
 
   /**
-   * Find all KYC documents for a specific user
+   * Find all KYC documents for a specific tenant
    */
-  async findByUser(userId: number, paginationDto: PaginationDto): Promise<PaginationResponse<Kyc>> {
+  async findByTenant(
+    tenantId: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginationResponse<Kyc>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
-      where: { userId },
+      where: { tenantId },
+      relations: ['tenant'],
       skip,
       take: limit,
       order: {
@@ -84,10 +109,10 @@ export class KycService {
   /**
    * Find a specific KYC document by ID
    */
-  async findOne(id: number): Promise<Kyc> {
+  async findOne(id: string): Promise<Kyc> {
     const kyc = await this.kycRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['tenant'],
     });
 
     if (!kyc) {
@@ -100,14 +125,17 @@ export class KycService {
   /**
    * Update a KYC document
    */
-  async update(id: number, updateKycDto: UpdateKycDto): Promise<Kyc> {
+  async update(id: string, updateKycDto: UpdateKycDto): Promise<Kyc> {
     const kyc = await this.findOne(id);
-    
+
     // If status is changing to VERIFIED, record verification details
-    if (updateKycDto.status === KycStatus.VERIFIED && kyc.status !== KycStatus.VERIFIED) {
+    if (
+      updateKycDto.status === KycStatus.VERIFIED &&
+      kyc.status !== KycStatus.VERIFIED
+    ) {
       kyc.verifiedAt = new Date();
     }
-    
+
     const updatedKyc = Object.assign(kyc, updateKycDto);
     return this.kycRepository.save(updatedKyc);
   }
@@ -115,26 +143,31 @@ export class KycService {
   /**
    * Verify a KYC document
    */
-  async verify(id: number, adminId: number, status: KycStatus, notes?: string): Promise<Kyc> {
+  async verify(
+    id: string,
+    adminId: number,
+    status: KycStatus,
+    notes?: string,
+  ): Promise<Kyc> {
     const kyc = await this.findOne(id);
-    
+
     // Cannot verify already verified or rejected documents
     if (kyc.status !== KycStatus.PENDING) {
       throw new BadRequestException(`Document is already ${kyc.status}`);
     }
-    
+
     kyc.status = status;
     kyc.verificationNotes = notes;
     kyc.verifiedBy = adminId;
     kyc.verifiedAt = new Date();
-    
+
     return this.kycRepository.save(kyc);
   }
 
   /**
    * Remove a KYC document
    */
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const kyc = await this.findOne(id);
     await this.kycRepository.remove(kyc);
   }
@@ -142,13 +175,15 @@ export class KycService {
   /**
    * Find pending KYC verifications
    */
-  async findPendingVerifications(paginationDto: PaginationDto): Promise<PaginationResponse<Kyc>> {
+  async findPendingVerifications(
+    paginationDto: PaginationDto,
+  ): Promise<PaginationResponse<Kyc>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
       where: { status: KycStatus.PENDING },
-      relations: ['user'],
+      relations: ['tenant'],
       skip,
       take: limit,
       order: {
@@ -168,16 +203,16 @@ export class KycService {
   }
 
   /**
-   * Check if user has any verified KYC document
+   * Check if tenant has any verified KYC document
    */
-  async hasVerifiedKyc(userId: number): Promise<boolean> {
+  async hasVerifiedKyc(tenantId: string): Promise<boolean> {
     const count = await this.kycRepository.count({
       where: {
-        userId,
+        tenantId,
         status: KycStatus.VERIFIED,
       },
     });
-    
+
     return count > 0;
   }
 }

@@ -12,6 +12,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { Room } from '../properties/entities/room.entity';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { Property } from '../properties/entities/property.entity';
+import { v7 as uuidv7 } from 'uuid';
 
 @Injectable()
 export class TenantService {
@@ -26,12 +27,13 @@ export class TenantService {
 
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
     const room = await this.roomRepository.findOne({
-      where: { id: createTenantDto.roomId },
+      where: { room_id: createTenantDto.room_id },
     });
 
     if (!room) throw new NotFoundException('Room not found');
 
     const tenant = this.tenantRepository.create({
+      tenant_id: `TENANT-${uuidv7()}`,
       name: createTenantDto.name,
       phone_number: createTenantDto.phone,
       alternate_phone: createTenantDto.alternatePhone,
@@ -47,18 +49,19 @@ export class TenantService {
         ? new Date(createTenantDto.checkOutDate)
         : null,
       room,
-      property_id: createTenantDto.propertyId,
+      property_id: createTenantDto.property_id,
+      room_id: createTenantDto.room_id,
       image_id_list: createTenantDto.image_id_list,
       rent_amount: room.rentAmount,
     });
 
     if (room.available_count < 1) {
-      await this.roomRepository.update(room.id, {
+      await this.roomRepository.update(room.room_id, {
         status: 'OCCUPIED',
         available_count: 0,
       });
     } else {
-      await this.roomRepository.update(room.id, {
+      await this.roomRepository.update(room.room_id, {
         available_count: room.available_count - 1,
       });
     }
@@ -67,12 +70,12 @@ export class TenantService {
   }
 
   async findAll({
-    propertyId,
+    property_id,
     page = 1,
     limit = 10,
   }: PaginationDto): Promise<PaginationResponse<Tenant>> {
     const [items, total] = await this.tenantRepository.findAndCount({
-      where: { property_id: propertyId },
+      where: { property_id },
       relations: ['room'],
       skip: (page - 1) * limit,
       take: limit,
@@ -90,15 +93,15 @@ export class TenantService {
     };
   }
 
-  async findPropertyTenants(propertyId: number, paginationDto: PaginationDto) {
+  async findPropertyTenants(property_id: string, paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     // Check if property exists
-    await this.findPropertyById(propertyId);
+    await this.findPropertyById(property_id);
 
     const [tenants] = await this.tenantRepository.findAndCount({
-      where: { property_id: propertyId },
+      where: { property_id },
       skip,
       take: limit,
     });
@@ -148,9 +151,9 @@ export class TenantService {
       .getMany();
   }
 
-  async findOne(id: string): Promise<Tenant> {
+  async findOne(tenant_id: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({
-      where: { id },
+      where: { tenant_id },
       relations: ['room'],
     });
 
@@ -161,9 +164,9 @@ export class TenantService {
   async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
     const tenant = await this.findOne(id);
 
-    if (updateTenantDto.roomId) {
+    if (updateTenantDto.room_id) {
       const room = await this.roomRepository.findOne({
-        where: { id: updateTenantDto.roomId },
+        where: { room_id: updateTenantDto.room_id },
       });
 
       if (!room) throw new NotFoundException('Room not found');
@@ -207,14 +210,14 @@ export class TenantService {
     await this.tenantRepository.delete(id);
   }
 
-  async findPropertyById(id: number): Promise<Property> {
+  async findPropertyById(property_id: string): Promise<Property> {
     const property = await this.propertyRepository.findOne({
-      where: { id },
+      where: { property_id },
       relations: ['rooms', 'owner'],
     });
 
     if (!property) {
-      throw new NotFoundException(`Property with ID ${id} not found`);
+      throw new NotFoundException(`Property with ID ${property_id} not found`);
     }
 
     return property;

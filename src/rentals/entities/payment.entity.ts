@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -13,8 +12,8 @@ import { Tenant } from '../../tenant/entities/tenant.entity';
 
 @Entity('payments')
 export class Payment {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ unique: true, primary: true, length: 70, type: 'varchar' })
+  payment_id: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
@@ -28,6 +27,9 @@ export class Payment {
   @Column({ nullable: true })
   transactionId: string;
 
+  @Column({ default: null, nullable: true })
+  property_id: string;
+
   @Column({ nullable: true })
   receiptUrl: string;
 
@@ -40,15 +42,15 @@ export class Payment {
   @Column({ nullable: true, type: 'decimal', precision: 10, scale: 2 })
   lateFee: number;
 
-  @Column({ nullable: true })
-  recordedBy: number;
+  @Column({ nullable: true, type: 'varchar', length: 100 })
+  recordedBy: string;
 
   @ManyToOne(() => Rental, (rental) => rental.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'rentalId' })
   rental: Rental;
 
-  @Column()
-  rentalId: number;
+  @Column({ type: 'varchar', length: 50 })
+  rental_id: string;
 
   // Relationship with Invoice
   @ManyToOne(() => Invoice, (invoice) => invoice.payments, {
@@ -58,8 +60,8 @@ export class Payment {
   @JoinColumn({ name: 'invoiceId' })
   invoice: Invoice;
 
-  @Column({ nullable: true })
-  invoiceId: number;
+  @Column({ nullable: true, type: 'varchar', length: 70 })
+  invoice_id: string;
 
   // Relationship with Tenant (for direct tenant payments)
   @ManyToOne(() => Tenant, { nullable: true })

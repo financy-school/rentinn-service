@@ -16,6 +16,7 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import { PropertiesService } from '../properties/properties.service';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycService } from '../kyc/kyc.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class RentalsService {
@@ -81,6 +82,7 @@ export class RentalsService {
       const newRental = this.rentalRepository.create({
         ...createRentalDto,
         outstandingAmount,
+        rental_id: `RENTAL-${uuidv4()}`,
         startDate: new Date(createRentalDto.startDate),
         endDate: createRentalDto.endDate
           ? new Date(createRentalDto.endDate)
@@ -92,7 +94,7 @@ export class RentalsService {
       // Update room availability
       await queryRunner.manager.update(
         room.constructor,
-        { id: room.id },
+        { room_id: room.room_id },
         { isAvailable: false },
       );
 
@@ -174,7 +176,7 @@ export class RentalsService {
    * Find rentals for a specific tenant
    */
   async findTenantRentals(
-    tenantId: number,
+    tenantId: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<Rental>> {
     const { page, limit } = paginationDto;
@@ -204,9 +206,9 @@ export class RentalsService {
   /**
    * Find a specific rental by ID
    */
-  async findOne(id: number): Promise<Rental> {
+  async findOne(id: string): Promise<Rental> {
     const rental = await this.rentalRepository.findOne({
-      where: { id },
+      where: { rental_id: id },
       relations: ['tenant', 'room', 'room.property', 'payments'],
     });
 
@@ -220,7 +222,7 @@ export class RentalsService {
   /**
    * Update a rental
    */
-  async update(id: number, updateRentalDto: UpdateRentalDto): Promise<Rental> {
+  async update(id: string, updateRentalDto: UpdateRentalDto): Promise<Rental> {
     const rental = await this.findOne(id);
 
     // Handle date conversions if present
@@ -240,11 +242,11 @@ export class RentalsService {
     // If rental is deactivated, make room available again
     if (rental.isActive === false) {
       const room = await this.propertiesService.findRoomById(
-        rental.propertyId,
+        rental.property_id,
         rental.roomId,
       );
       room.available = true;
-      await this.propertiesService.updateRoom(room.propertyId, room.id, {
+      await this.propertiesService.updateRoom(room.property_id, room.room_id, {
         available: true,
       });
     }
@@ -256,11 +258,10 @@ export class RentalsService {
    * Record a payment for a rental
    */
   async recordPayment(
-    id: number,
+    rental_id: string,
     recordPaymentDto: RecordPaymentDto,
-    recordedById: number,
   ): Promise<Payment> {
-    const rental = await this.findOne(id);
+    const rental = await this.findOne(rental_id);
 
     // Create payment transaction
     const queryRunner = this.dataSource.createQueryRunner();
@@ -271,8 +272,8 @@ export class RentalsService {
       // Create the payment record
       const newPayment = this.paymentRepository.create({
         ...recordPaymentDto,
-        rentalId: id,
-        recordedBy: recordedById,
+        rental_id,
+        recordedBy: recordPaymentDto.recordedById,
         paymentDate: new Date(recordPaymentDto.paymentDate),
       });
 
@@ -294,7 +295,7 @@ export class RentalsService {
 
       await queryRunner.manager.update(
         rental.constructor,
-        { id },
+        { rental_id },
         {
           outstandingAmount: newOutstanding,
           paymentStatus,
@@ -314,17 +315,17 @@ export class RentalsService {
   /**
    * Remove a rental
    */
-  async remove(rentalId: number, roomId: number): Promise<void> {
-    const rental = await this.findOne(rentalId);
+  async remove(rental_id: string, room_id: string): Promise<void> {
+    const rental = await this.findOne(rental_id);
 
     // Free up the room if rental is active
     if (rental.isActive) {
       const room = await this.propertiesService.findRoomById(
-        rental.propertyId,
-        roomId,
+        rental.property_id,
+        room_id,
       );
       room.available = true;
-      await this.propertiesService.updateRoom(room.propertyId, room.id, {
+      await this.propertiesService.updateRoom(room.property_id, room.room_id, {
         available: true,
       });
     }
@@ -375,9 +376,9 @@ export class RentalsService {
   /**
    * Check if user is the landlord for a rental
    */
-  async isRentalLandlord(rentalId: number, userId: number): Promise<boolean> {
+  async isRentalLandlord(rental_id: string, user_id: string): Promise<boolean> {
     const rental = await this.rentalRepository.findOne({
-      where: { id: rentalId },
+      where: { rental_id },
       relations: ['room', 'room.property'],
     });
 
@@ -385,15 +386,15 @@ export class RentalsService {
       return false;
     }
 
-    return rental.room.property.ownerId === userId;
+    return rental.room.property.owner_id === user_id;
   }
 
   /**
    * Check if user is the tenant for a rental
    */
-  async isRentalTenant(rentalId: number, userId: number): Promise<boolean> {
+  async isRentalTenant(rental_id: string, userId: string): Promise<boolean> {
     const rental = await this.rentalRepository.findOne({
-      where: { id: rentalId, tenantId: userId },
+      where: { rental_id, tenantId: userId },
     });
 
     return !!rental;

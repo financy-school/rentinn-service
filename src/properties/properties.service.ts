@@ -14,6 +14,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { UserRole } from '../common/enums/user-role.enum';
+import { v7 as uuidv7 } from 'uuid';
 
 @Injectable()
 export class PropertiesService {
@@ -28,12 +29,13 @@ export class PropertiesService {
    * Create a new property
    */
   async createProperty(
-    userId: number,
+    userId: string,
     createPropertyDto: CreatePropertyDto,
   ): Promise<Property> {
     const newProperty = this.propertyRepository.create({
       ...createPropertyDto,
-      ownerId: userId,
+      owner_id: userId,
+      property_id: `PROP-${uuidv7()}`,
     });
 
     return this.propertyRepository.save(newProperty);
@@ -44,7 +46,7 @@ export class PropertiesService {
    */
   async findAllProperties(
     paginationDto: PaginationDto,
-    userId?: number,
+    userId?: string,
     userRole?: UserRole,
   ): Promise<PaginationResponse<Property>> {
     const { page = 1, limit = 10 } = paginationDto;
@@ -54,7 +56,7 @@ export class PropertiesService {
 
     // If user is landlord, only show their properties
     if (userRole === UserRole.LANDLORD && userId) {
-      where.ownerId = userId;
+      where.owner_id = userId;
     }
 
     const [properties, total] = await this.propertyRepository.findAndCount({
@@ -78,22 +80,22 @@ export class PropertiesService {
   /**
    * Find property by ID
    */
-  async findPropertyById(id: number): Promise<Property> {
+  async findPropertyById(property_id: string): Promise<Property> {
     const property = await this.propertyRepository.findOne({
-      where: { id },
+      where: { property_id },
       relations: ['rooms', 'owner'],
     });
 
     if (!property) {
-      throw new NotFoundException(`Property with ID ${id} not found`);
+      throw new NotFoundException(`Property with ID ${property_id} not found`);
     }
 
     return property;
   }
 
-  async findPropertiesByOwnerId(ownerId: number) {
+  async findPropertiesByOwnerId(owner_id: string) {
     const properties = await this.propertyRepository.findOne({
-      where: { ownerId },
+      where: { owner_id: owner_id },
     });
 
     return properties;
@@ -103,10 +105,10 @@ export class PropertiesService {
    * Update property
    */
   async updateProperty(
-    id: number,
+    property_id: string,
     updatePropertyDto: UpdatePropertyDto,
   ): Promise<Property> {
-    const property = await this.findPropertyById(id);
+    const property = await this.findPropertyById(property_id);
 
     // Update and save
     this.propertyRepository.merge(property, updatePropertyDto);
@@ -116,8 +118,8 @@ export class PropertiesService {
   /**
    * Remove property
    */
-  async removeProperty(id: number): Promise<void> {
-    const property = await this.findPropertyById(id);
+  async removeProperty(property_id: string): Promise<void> {
+    const property = await this.findPropertyById(property_id);
     await this.propertyRepository.remove(property);
   }
 
@@ -125,17 +127,18 @@ export class PropertiesService {
    * Add room to property
    */
   async createRoom(
-    propertyId: number,
+    property_id: string,
     createRoomDto: CreateRoomDto,
   ): Promise<Room> {
     // Check if property exists
-    const property = await this.findPropertyById(propertyId);
+    const property = await this.findPropertyById(property_id);
 
     if (!property) {
-      throw new NotFoundException(`Property with ID ${propertyId} not found`);
+      throw new NotFoundException(`Property with ID ${property_id} not found`);
     }
 
     const new_room = new Room();
+    new_room.room_id = `ROOM-${uuidv7()}`;
     new_room.name = createRoomDto.roomName;
     new_room.areaType = createRoomDto.areaType;
     new_room.rentAmount = createRoomDto.rentAmount;
@@ -150,7 +153,7 @@ export class PropertiesService {
     new_room.furnished = createRoomDto.furnished;
     new_room.amenities = createRoomDto.amenities;
     new_room.image_document_id_list = createRoomDto.image_document_id_list;
-    new_room.propertyId = propertyId;
+    new_room.property_id = property_id;
     new_room.property = property;
     new_room.description = createRoomDto.description;
     new_room.status = 'VACANT';
@@ -164,7 +167,7 @@ export class PropertiesService {
    * Get all rooms in a property
    */
   async findPropertyRooms(
-    propertyId: number,
+    property_id: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<Room>> {
     const page = Number(paginationDto.page) || 1;
@@ -172,10 +175,10 @@ export class PropertiesService {
     const skip = (page - 1) * limit;
 
     // Check if property exists
-    await this.findPropertyById(propertyId);
+    await this.findPropertyById(property_id);
 
     const [rooms, total] = await this.roomRepository.findAndCount({
-      where: { propertyId },
+      where: { property_id: property_id },
       relations: ['rentals'],
       skip,
       take: limit,
@@ -195,14 +198,14 @@ export class PropertiesService {
   /**
    * Find room by ID
    */
-  async findRoomById(propertyId: number, roomId: number): Promise<Room> {
+  async findRoomById(property_id: string, room_id: string): Promise<Room> {
     const room = await this.roomRepository.findOne({
-      where: { id: roomId, propertyId },
+      where: { room_id, property_id },
       relations: ['property', 'rentals'],
     });
 
     if (!room) {
-      throw new NotFoundException(`Room with ID ${roomId} not found`);
+      throw new NotFoundException(`Room with ID ${room_id} not found`);
     }
 
     return room;
@@ -212,11 +215,11 @@ export class PropertiesService {
    * Update room
    */
   async updateRoom(
-    propertyId: number,
-    roomId: number,
+    property_id: string,
+    room_id: string,
     updateRoomDto: UpdateRoomDto,
   ): Promise<Room> {
-    const room = await this.findRoomById(propertyId, roomId);
+    const room = await this.findRoomById(property_id, room_id);
 
     // Update and save
     this.roomRepository.merge(room, updateRoomDto);
@@ -226,8 +229,8 @@ export class PropertiesService {
   /**
    * Remove room
    */
-  async removeRoom(propertyId: number, roomId: number): Promise<void> {
-    const room = await this.findRoomById(propertyId, roomId);
+  async removeRoom(property_id: string, room_id: string): Promise<void> {
+    const room = await this.findRoomById(property_id, room_id);
 
     // Check if room has active rentals
     if (room.rentals && room.rentals.some((rental) => rental.isActive)) {
@@ -274,9 +277,9 @@ export class PropertiesService {
   /**
    * Check if a user is the owner of a property
    */
-  async isPropertyOwner(propertyId: number, userId: number): Promise<boolean> {
+  async isPropertyOwner(property_id: string, userId: string): Promise<boolean> {
     const property = await this.propertyRepository.findOne({
-      where: { id: propertyId, ownerId: userId },
+      where: { property_id, owner_id: userId },
     });
 
     return !!property;

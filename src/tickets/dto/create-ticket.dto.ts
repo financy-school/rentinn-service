@@ -1,9 +1,9 @@
-import { IsInt, IsString, IsNotEmpty, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray } from 'class-validator';
 
 export class CreateTicketDto {
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  propertyId: number;
+  property_id: string;
 
   @IsString()
   @IsNotEmpty()
@@ -21,9 +21,9 @@ export class CreateTicketDto {
   @IsNotEmpty()
   raisedBy: string;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  roomId: number;
+  room_id: string;
 
   @IsArray()
   @IsString({ each: true })

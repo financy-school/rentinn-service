@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -13,8 +12,8 @@ import { Rental } from '../../rentals/entities/rental.entity';
 
 @Entity('rooms')
 export class Room {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, type: 'varchar', length: 36 })
+  room_id: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
@@ -61,13 +60,13 @@ export class Room {
   @ManyToOne(() => Property, (property) => property.rooms, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'propertyId' })
+  @JoinColumn({ name: 'property_id' })
   property: Property;
 
-  @Column()
-  propertyId: number;
+  @Column({ nullable: true, type: 'varchar' })
+  property_id: string;
 
-  @OneToMany(() => Rental, (rental) => rental.room) // Use forward reference
+  @OneToMany(() => Rental, (rental) => rental.room)
   rentals: Rental[];
 
   @CreateDateColumn()

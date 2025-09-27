@@ -12,6 +12,10 @@ export class CreateKycDto {
 
   @IsNotEmpty()
   @IsString()
+  tenantId: string;
+
+  @IsNotEmpty()
+  @IsString()
   documentNumber: string;
 
   @IsOptional()

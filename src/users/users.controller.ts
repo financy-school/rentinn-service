@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -43,33 +42,33 @@ export class UsersController {
     return this.usersService.findAll(paginationDto, role);
   }
 
-  @Get(':id')
+  @Get(':user_id')
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  findOne(@Param('user_id') user_id: string) {
+    return this.usersService.findOne(user_id);
   }
 
-  @Patch(':id')
+  @Patch(':user_id')
   @UseGuards(JwtAuthGuard)
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('user_id') user_id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(user_id, updateUserDto);
   }
 
-  @Delete(':id')
+  @Delete(':user_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  remove(@Param('user_id') user_id: string) {
+    return this.usersService.remove(user_id);
   }
 
   @Get('landlord/:id/tenants')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   findTenants(
-    @Param('id', ParseIntPipe) landlordId: number,
+    @Param('user_id') landlordId: string,
     @Query() paginationDto: PaginationDto,
   ): Promise<PaginationResponse<User>> {
     return this.usersService.findTenants(landlordId, paginationDto);

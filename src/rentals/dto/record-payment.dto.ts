@@ -41,4 +41,8 @@ export class RecordPaymentDto {
   @IsOptional()
   @IsNumber()
   lateFee?: number;
+
+  @IsOptional()
+  @IsString()
+  recordedById?: string;
 }

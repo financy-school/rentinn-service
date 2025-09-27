@@ -18,15 +18,15 @@ export class SettingsService {
   /**
    * Get user settings or create default if not exists
    */
-  async getUserSettings(userId: number): Promise<UserSettings> {
+  async getUserSettings(user_id: string): Promise<UserSettings> {
     let settings = await this.settingsRepository.findOne({
-      where: { userId },
+      where: { user_id },
       relations: ['user'],
     });
 
     if (!settings) {
       // Create default settings for new user
-      settings = await this.createDefaultSettings(userId);
+      settings = await this.createDefaultSettings(user_id);
     }
 
     return settings;
@@ -35,9 +35,9 @@ export class SettingsService {
   /**
    * Create default settings for a user
    */
-  async createDefaultSettings(userId: number): Promise<UserSettings> {
+  async createDefaultSettings(user_id: string): Promise<UserSettings> {
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { user_id },
     });
 
     if (!user) {
@@ -45,7 +45,7 @@ export class SettingsService {
     }
 
     const defaultSettings = this.settingsRepository.create({
-      userId,
+      user_id,
       user,
       // Default values are set in the entity
     });
@@ -57,16 +57,16 @@ export class SettingsService {
    * Update user settings
    */
   async updateSettings(
-    userId: number,
+    user_id: string,
     updateSettingsDto: UpdateSettingsDto,
   ): Promise<UserSettings> {
     let settings = await this.settingsRepository.findOne({
-      where: { userId },
+      where: { user_id },
     });
 
     if (!settings) {
       // Create settings if they don't exist
-      settings = await this.createDefaultSettings(userId);
+      settings = await this.createDefaultSettings(user_id);
     }
 
     // Update settings
@@ -78,19 +78,19 @@ export class SettingsService {
   /**
    * Reset settings to default
    */
-  async resetToDefaults(userId: number): Promise<UserSettings> {
-    await this.settingsRepository.delete({ userId });
-    return await this.createDefaultSettings(userId);
+  async resetToDefaults(user_id: string): Promise<UserSettings> {
+    await this.settingsRepository.delete({ user_id });
+    return await this.createDefaultSettings(user_id);
   }
 
   /**
    * Backup user data (placeholder for actual backup logic)
    */
   async backupUserData(
-    userId: number,
+    user_id: string,
   ): Promise<{ message: string; backupId: string }> {
     const settings = await this.settingsRepository.findOne({
-      where: { userId },
+      where: { user_id },
     });
 
     if (!settings) {
@@ -102,7 +102,7 @@ export class SettingsService {
     await this.settingsRepository.save(settings);
 
     // Placeholder for actual backup logic
-    const backupId = `backup_${userId}_${Date.now()}`;
+    const backupId = `backup_${user_id}_${Date.now()}`;
 
     return {
       message: 'Data backup initiated successfully',
@@ -129,9 +129,9 @@ export class SettingsService {
   /**
    * Clear cache for user
    */
-  async clearCache(userId: number): Promise<{ message: string }> {
+  async clearCache(user_id: string): Promise<{ message: string }> {
     const settings = await this.settingsRepository.findOne({
-      where: { userId },
+      where: { user_id },
     });
 
     if (settings) {
@@ -148,8 +148,8 @@ export class SettingsService {
   /**
    * Change password (delegates to auth service in real implementation)
    */
-  async updatePasswordChangeDate(userId: number): Promise<void> {
-    const settings = await this.getUserSettings(userId);
+  async updatePasswordChangeDate(user_id: string): Promise<void> {
+    const settings = await this.getUserSettings(user_id);
     settings.lastPasswordChange = new Date();
     await this.settingsRepository.save(settings);
   }
@@ -158,10 +158,10 @@ export class SettingsService {
    * Update login tracking
    */
   async updateLoginTracking(
-    userId: number,
+    user_id: string,
     successful: boolean,
   ): Promise<void> {
-    const settings = await this.getUserSettings(userId);
+    const settings = await this.getUserSettings(user_id);
 
     if (successful) {
       settings.lastLoginDate = new Date();
@@ -176,8 +176,8 @@ export class SettingsService {
   /**
    * Get app info and statistics
    */
-  async getAppInfo(userId: number): Promise<any> {
-    const settings = await this.getUserSettings(userId);
+  async getAppInfo(user_id: string): Promise<any> {
+    const settings = await this.getUserSettings(user_id);
 
     return {
       appVersion: settings.appVersion || 'v1.0.0 (Build 1)',

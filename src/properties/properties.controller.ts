@@ -8,9 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
-  ParseIntPipe,
   Request,
-  ForbiddenException,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
@@ -53,152 +51,83 @@ export class PropertiesController {
     );
   }
 
-  @Get(':id')
+  @Get(':property_id')
   @UseGuards(JwtAuthGuard)
-  findPropertyById(@Param('id', ParseIntPipe) id: number) {
-    return this.propertiesService.findPropertyById(id);
+  findPropertyById(@Param('property_id') property_id: string) {
+    return this.propertiesService.findPropertyById(property_id);
   }
 
-  @Patch(':id')
+  @Patch(':property_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async updateProperty(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('property_id') property_id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
-    @Request() req: any,
   ) {
-    // Check if user is the owner or admin
-    if (req.user.role !== UserRole.ADMIN) {
-      const isOwner = await this.propertiesService.isPropertyOwner(
-        id,
-        req.user.id,
-      );
-      if (!isOwner) {
-        throw new ForbiddenException(
-          'You do not have permission to update this property',
-        );
-      }
-    }
-
-    return this.propertiesService.updateProperty(id, updatePropertyDto);
+    return this.propertiesService.updateProperty(
+      property_id,
+      updatePropertyDto,
+    );
   }
 
-  @Delete(':id')
+  @Delete(':property_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async removeProperty(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
-  ) {
-    // Check if user is the owner or admin
-    if (req.user.role !== UserRole.ADMIN) {
-      const isOwner = await this.propertiesService.isPropertyOwner(
-        id,
-        req.user.id,
-      );
-      if (!isOwner) {
-        throw new ForbiddenException(
-          'You do not have permission to delete this property',
-        );
-      }
-    }
-
-    return this.propertiesService.removeProperty(id);
+  async removeProperty(@Param('property_id') property_id: string) {
+    return this.propertiesService.removeProperty(property_id);
   }
 
-  @Post(':id/rooms')
+  @Post(':property_id/rooms')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async createRoom(
-    @Param('id', ParseIntPipe) propertyId: number,
+    @Param('property_id') property_id: string,
     @Body() createRoomDto: CreateRoomDto,
-    @Request() req: any,
   ) {
-    // Check if user is the owner or admin
-    if (req.user.role !== UserRole.ADMIN) {
-      const isOwner = await this.propertiesService.isPropertyOwner(
-        propertyId,
-        req.user.id,
-      );
-      if (!isOwner) {
-        throw new ForbiddenException(
-          'You do not have permission to add rooms to this property',
-        );
-      }
-    }
-
-    return this.propertiesService.createRoom(propertyId, createRoomDto);
+    return this.propertiesService.createRoom(property_id, createRoomDto);
   }
 
-  @Get(':id/rooms')
+  @Get(':property_id/rooms')
   @UseGuards(JwtAuthGuard)
   findPropertyRooms(
-    @Param('id', ParseIntPipe) propertyId: number,
+    @Param('property_id') property_id: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.propertiesService.findPropertyRooms(propertyId, paginationDto);
+    return this.propertiesService.findPropertyRooms(property_id, paginationDto);
   }
 
-  @Get(':propertyId/rooms/:roomId')
+  @Get(':property_id/rooms/:room_id')
   @UseGuards(JwtAuthGuard)
   findRoomById(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
-    @Param('roomId', ParseIntPipe) roomId: number,
+    @Param('property_id') property_id: string,
+    @Param('room_id') room_id: string,
   ) {
-    return this.propertiesService.findRoomById(propertyId, roomId);
+    return this.propertiesService.findRoomById(property_id, room_id);
   }
 
-  @Patch('/:propertyId/rooms/:roomId')
+  @Patch('/:property_id/rooms/:room_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async updateRoom(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
-    @Param('roomId', ParseIntPipe) roomId: number,
+    @Param('property_id') property_id: string,
+    @Param('room_id') room_id: string,
     @Body() updateRoomDto: UpdateRoomDto,
-    @Request() req: any,
   ) {
-    const room = await this.propertiesService.findRoomById(propertyId, roomId);
-
-    // Check if user is the owner or admin
-    if (req.user.role !== UserRole.ADMIN) {
-      const isOwner = await this.propertiesService.isPropertyOwner(
-        room.propertyId,
-        req.user.id,
-      );
-      if (!isOwner) {
-        throw new ForbiddenException(
-          'You do not have permission to update this room',
-        );
-      }
-    }
-
-    return this.propertiesService.updateRoom(propertyId, roomId, updateRoomDto);
+    return this.propertiesService.updateRoom(
+      property_id,
+      room_id,
+      updateRoomDto,
+    );
   }
 
-  @Delete(':propertyId/rooms/:roomId')
+  @Delete(':property_id/rooms/:room_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async removeRoom(
-    @Param('propertyId', ParseIntPipe) propertyId: number,
-    @Param('roomId', ParseIntPipe) roomId: number,
-    @Request() req: any,
+    @Param('property_id') property_id: string,
+    @Param('room_id') room_id: string,
   ) {
-    const room = await this.propertiesService.findRoomById(propertyId, roomId);
-
-    // Check if user is the owner or admin
-    if (req.user.role !== UserRole.ADMIN) {
-      const isOwner = await this.propertiesService.isPropertyOwner(
-        room.propertyId,
-        req.user.id,
-      );
-      if (!isOwner) {
-        throw new ForbiddenException(
-          'You do not have permission to delete this room',
-        );
-      }
-    }
-
-    return this.propertiesService.removeRoom(propertyId, roomId);
+    return this.propertiesService.removeRoom(property_id, room_id);
   }
 
   @Get('rooms/available/list')

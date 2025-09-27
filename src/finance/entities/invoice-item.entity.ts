@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -23,8 +22,8 @@ export enum BillCategory {
 
 @Entity('invoice_items')
 export class InvoiceItem {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, type: 'varchar', length: 70 })
+  item_id: string;
 
   @Column({ type: 'enum', enum: BillCategory })
   category: BillCategory;
@@ -60,8 +59,8 @@ export class InvoiceItem {
   @JoinColumn({ name: 'invoiceId' })
   invoice: Invoice;
 
-  @Column()
-  invoiceId: number;
+  @Column({ type: 'varchar', length: 70 })
+  invoice_id: string;
 
   @CreateDateColumn()
   createdAt: Date;

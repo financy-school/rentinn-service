@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,16 +7,16 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { Payment } from './payment.entity';
 import { PaymentStatus } from '../../common/enums/payment-status.enum';
 import { Room } from '../../properties/entities/room.entity';
 import { Invoice } from '../../finance/entities/invoice.entity';
+import { Tenant } from '../../entities';
 
 @Entity('rentals')
 export class Rental {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ unique: true, length: 70, type: 'varchar', primary: true })
+  rental_id: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   rentAmount: number;
@@ -52,22 +51,22 @@ export class Rental {
   @Column({ default: 1 })
   rentDueDay: number;
 
-  @ManyToOne(() => User, (user) => user.rentalsAsTenant)
+  @ManyToOne(() => Tenant, (tenant) => tenant.tenant_id)
   @JoinColumn({ name: 'tenantId' })
-  tenant: User;
+  tenant: Tenant;
 
   @Column()
-  tenantId: number;
+  tenantId: string;
 
-  @ManyToOne(() => Room, (room) => room.rentals) // Use forward reference
-  @JoinColumn({ name: 'roomId' }) // Corrected from 'id' to 'roomId'
+  @ManyToOne(() => Room, (room) => room.rentals)
+  @JoinColumn({ name: 'roomId' })
   room: Room;
 
-  @Column()
-  roomId: number;
+  @Column({ type: 'varchar', length: 50 })
+  roomId: string;
 
-  @Column()
-  propertyId: number;
+  @Column({ default: null, nullable: true })
+  property_id: string;
 
   @OneToMany(() => Payment, (payment) => payment.rental, { cascade: true })
   payments: Payment[];

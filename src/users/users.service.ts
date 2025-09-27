@@ -99,13 +99,13 @@ export class UsersService {
   /**
    * Find a specific user by ID
    */
-  async findOne(id: number): Promise<User> {
+  async findOne(user_id: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { id },
+      where: { user_id },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${user_id} not found`);
     }
 
     return user;
@@ -123,13 +123,13 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
-    let property_id: number;
+    let property_id: string;
     // If the user is a landlord, load their properties
     if (user.role === UserRole.LANDLORD) {
       // Load properties for landlords with explicit selection of the id field
       property_id = (
-        await this.propertyService.findPropertiesByOwnerId(user.id)
-      ).id;
+        await this.propertyService.findPropertiesByOwnerId(user.user_id)
+      ).property_id;
 
       // Ensure each property has an id in the response
     }
@@ -140,8 +140,8 @@ export class UsersService {
   /**
    * Update user information
    */
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
+  async update(user_id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(user_id);
 
     // If email is being updated, check if it's already taken
     if (updateUserDto.email && updateUserDto.email !== user.email) {
@@ -167,7 +167,7 @@ export class UsersService {
   /**
    * Delete a user
    */
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.userRepository.remove(user);
   }
@@ -176,7 +176,7 @@ export class UsersService {
    * Find tenants for a landlord
    */
   async findTenants(
-    landlordId: number,
+    landlordId: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<User>> {
     const { page, limit } = paginationDto;

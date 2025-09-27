@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -24,8 +23,8 @@ export enum InvoiceStatus {
 
 @Entity('invoices')
 export class Invoice {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, type: 'varchar', length: 70 })
+  invoice_id: string;
 
   @Column({ unique: true })
   invoiceNumber: string;
@@ -74,8 +73,14 @@ export class Invoice {
   @JoinColumn({ name: 'tenantId' })
   tenant: Tenant;
 
-  @Column()
-  tenantId: string; // Changed to string to match Tenant's UUID
+  @Column({ type: 'varchar', length: 50, default: null, nullable: true })
+  tenant_id: string;
+
+  @Column({ type: 'varchar', length: 50, default: null, nullable: true })
+  property_id: string;
+
+  @Column({ type: 'varchar', length: 50, default: null, nullable: true })
+  room_id: string;
 
   @ManyToOne(() => User, (user) => user.invoicesAsLandlord)
   @JoinColumn({ name: 'landlordId' })
@@ -88,8 +93,8 @@ export class Invoice {
   @JoinColumn({ name: 'rentalId' })
   rental: Rental;
 
-  @Column({ nullable: true })
-  rentalId: number;
+  @Column({ nullable: true, type: 'varchar', length: 50, default: null })
+  rental_id: string;
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
   items: InvoiceItem[];

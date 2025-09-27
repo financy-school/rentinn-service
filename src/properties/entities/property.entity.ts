@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -13,8 +12,8 @@ import { Room } from './room.entity';
 
 @Entity('properties')
 export class Property {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, length: 50 })
+  property_id: string;
 
   @Column()
   name: string;
@@ -65,17 +64,17 @@ export class Property {
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
-  @Column()
-  ownerId: number;
+  @Column({ type: 'varchar', length: 70 })
+  owner_id: string;
 
   @OneToMany(() => Room, (room) => room.property, { cascade: true })
   rooms: Room[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updated_at: Date;
 
   // Convenience method to calculate total property value
   calculateTotalValue(): number {

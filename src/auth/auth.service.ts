@@ -21,11 +21,11 @@ export class AuthService {
     const user = await this.usersService.create(registerDto);
 
     // Create default settings for the new user
-    await this.settingsService.createDefaultSettings(user.id);
+    await this.settingsService.createDefaultSettings(user.user_id);
 
     const payload = {
       email: user.email,
-      sub: user.id,
+      sub: user.user_id,
       role: user.role,
     };
 
@@ -63,7 +63,10 @@ export class AuthService {
       // Track failed login attempt if user exists
       const existingUser = await this.usersService.findByEmail(loginDto.email);
       if (existingUser) {
-        await this.settingsService.updateLoginTracking(existingUser.id, false);
+        await this.settingsService.updateLoginTracking(
+          existingUser.user_id,
+          false,
+        );
       }
       throw new UnauthorizedException('Invalid credentials');
     }

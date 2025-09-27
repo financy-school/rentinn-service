@@ -18,6 +18,7 @@ import { RecordPaymentDto } from './dto/record-payment.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { UserRole } from '../common/enums/user-role.enum';
+import { v7 as uuidv7 } from 'uuid';
 
 @Injectable()
 export class InvoiceService {
@@ -45,24 +46,24 @@ export class InvoiceService {
   ): Promise<Invoice> {
     // Validate tenant exists
     const tenant = await this.tenantRepository.findOne({
-      where: { id: createInvoiceDto.tenantId, is_active: true },
+      where: { tenant_id: createInvoiceDto.tenant_id, is_active: true },
     });
 
     if (!tenant) {
       throw new NotFoundException(
-        `Tenant with ID ${createInvoiceDto.tenantId} not found`,
+        `Tenant with ID ${createInvoiceDto.tenant_id} not found`,
       );
     }
 
-    // If rentalId is provided, validate it exists
-    if (createInvoiceDto.rentalId) {
+    // If rental_id is provided, validate it exists
+    if (createInvoiceDto.rental_id) {
       const rental = await this.rentalRepository.findOne({
-        where: { id: createInvoiceDto.rentalId },
+        where: { rental_id: createInvoiceDto.rental_id },
       });
 
       if (!rental) {
         throw new NotFoundException(
-          `Rental with ID ${createInvoiceDto.rentalId} not found`,
+          `Rental with ID ${createInvoiceDto.rental_id} not found`,
         );
       }
     }
@@ -90,14 +91,14 @@ export class InvoiceService {
     const items = createInvoiceDto.items.map((itemDto) =>
       this.invoiceItemRepository.create({
         ...itemDto,
-        invoiceId: savedInvoice.id,
+        invoice_id: savedInvoice.invoice_id,
         quantity: itemDto.quantity || 1,
       }),
     );
 
     await this.invoiceItemRepository.save(items);
 
-    return this.findInvoiceById(savedInvoice.id);
+    return this.findInvoiceById(savedInvoice.invoice_id);
   }
 
   /**
@@ -141,14 +142,14 @@ export class InvoiceService {
   /**
    * Find invoice by ID
    */
-  async findInvoiceById(id: number): Promise<Invoice> {
+  async findInvoiceById(invoice_id: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findOne({
-      where: { id },
+      where: { invoice_id },
       relations: ['items', 'payments', 'tenant', 'landlord', 'rental'],
     });
 
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
+      throw new NotFoundException(`Invoice with ID ${invoice_id} not found`);
     }
 
     return invoice;
@@ -158,12 +159,12 @@ export class InvoiceService {
    * Update invoice
    */
   async updateInvoice(
-    id: number,
+    invoice_id: string,
     updateInvoiceDto: UpdateInvoiceDto,
     userId: number,
     userRole: UserRole,
   ): Promise<Invoice> {
-    const invoice = await this.findInvoiceById(id);
+    const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
     if (userRole !== UserRole.ADMIN && invoice.landlordId !== userId) {
@@ -187,11 +188,11 @@ export class InvoiceService {
       updateInvoiceDto.outstandingAmount = totalAmount - invoice.paidAmount;
 
       // Update items
-      await this.invoiceItemRepository.delete({ invoiceId: id });
+      await this.invoiceItemRepository.delete({ invoice_id: invoice_id });
       const items = updateInvoiceDto.items.map((itemDto) =>
         this.invoiceItemRepository.create({
           ...itemDto,
-          invoiceId: id,
+          invoice_id: invoice_id,
           quantity: itemDto.quantity || 1,
         }),
       );
@@ -207,11 +208,11 @@ export class InvoiceService {
    * Delete invoice
    */
   async deleteInvoice(
-    id: number,
+    invoice_id: string,
     userId: number,
     userRole: UserRole,
   ): Promise<void> {
-    const invoice = await this.findInvoiceById(id);
+    const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
     if (userRole !== UserRole.ADMIN && invoice.landlordId !== userId) {
@@ -235,9 +236,9 @@ export class InvoiceService {
    */
   async recordPayment(
     recordPaymentDto: RecordPaymentDto,
-    userId: number,
+    userId: string,
   ): Promise<Payment> {
-    const invoice = await this.findInvoiceById(recordPaymentDto.invoiceId);
+    const invoice = await this.findInvoiceById(recordPaymentDto.invoice_id);
 
     // Validate payment amount
     if (recordPaymentDto.amount > invoice.outstandingAmount) {
@@ -249,8 +250,9 @@ export class InvoiceService {
     // Create payment record
     const payment = this.paymentRepository.create({
       ...recordPaymentDto,
-      rentalId: invoice.rentalId,
-      invoiceId: invoice.id,
+      payment_id: `PAY-${uuidv7()}`,
+      rental_id: invoice.rental_id,
+      invoice_id: invoice.invoice_id,
       recordedBy: userId,
       isLatePayment: new Date() > new Date(invoice.dueDate),
     });
@@ -258,7 +260,7 @@ export class InvoiceService {
     const savedPayment = await this.paymentRepository.save(payment);
 
     // Update invoice payment status
-    await this.updateInvoicePaymentStatus(invoice.id);
+    await this.updateInvoicePaymentStatus(invoice.invoice_id);
 
     return savedPayment;
   }
@@ -313,8 +315,8 @@ export class InvoiceService {
   /**
    * Send invoice reminder
    */
-  async sendInvoiceReminder(id: number, userId: number): Promise<void> {
-    const invoice = await this.findInvoiceById(id);
+  async sendInvoiceReminder(invoice_id: string, userId: number): Promise<void> {
+    const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
     if (invoice.landlordId !== userId) {
@@ -335,20 +337,20 @@ export class InvoiceService {
   async getAvailableTenants(): Promise<Tenant[]> {
     return this.tenantRepository.find({
       where: { is_active: true },
-      select: ['id', 'name', 'phone_number', 'email', 'rent_amount'],
+      select: ['tenant_id', 'name', 'phone_number', 'email', 'rent_amount'],
     });
   }
 
   /**
    * Get tenant rentals for invoice creation
    */
-  async getTenantRentals(tenantId: string): Promise<any> {
+  async getTenantRentals(tenant_id: string): Promise<any> {
     const tenant = await this.tenantRepository.findOne({
-      where: { id: tenantId, is_active: true },
+      where: { tenant_id, is_active: true },
     });
 
     if (!tenant) {
-      throw new NotFoundException(`Tenant with ID ${tenantId} not found`);
+      throw new NotFoundException(`Tenant with ID ${tenant_id} not found`);
     }
 
     // Return tenant information since there might not be a direct rental relationship
@@ -369,9 +371,9 @@ export class InvoiceService {
     return `INV-${year}${month}-${timestamp}`;
   }
 
-  private async updateInvoicePaymentStatus(invoiceId: number): Promise<void> {
+  private async updateInvoicePaymentStatus(invoice_id: string): Promise<void> {
     const invoice = await this.invoiceRepository.findOne({
-      where: { id: invoiceId },
+      where: { invoice_id },
       relations: ['payments'],
     });
 
@@ -402,10 +404,10 @@ export class InvoiceService {
    * Get tenant invoice data for the "Add Invoice" screen
    * This includes tenant info, pending items from previous invoices, and rental details
    */
-  async getTenantInvoiceData(tenantId: string) {
+  async getTenantInvoiceData(tenant_id: string) {
     // Validate tenant exists
     const tenant = await this.tenantRepository.findOne({
-      where: { id: tenantId, is_active: true },
+      where: { tenant_id, is_active: true },
     });
 
     if (!tenant) {
@@ -415,9 +417,9 @@ export class InvoiceService {
     // Get all previous invoices for this tenant (unpaid and partially paid)
     const previousInvoices = await this.invoiceRepository.find({
       where: [
-        { tenantId, status: InvoiceStatus.SENT },
-        { tenantId, status: InvoiceStatus.PARTIALLY_PAID },
-        { tenantId, status: InvoiceStatus.OVERDUE },
+        { tenant_id, status: InvoiceStatus.SENT },
+        { tenant_id, status: InvoiceStatus.PARTIALLY_PAID },
+        { tenant_id, status: InvoiceStatus.OVERDUE },
       ],
       relations: ['items', 'payments'],
       order: { createdAt: 'DESC' },
@@ -438,10 +440,10 @@ export class InvoiceService {
 
           if (itemPendingAmount > 0) {
             pendingItems.push({
-              originalInvoiceId: invoice.id,
+              originalInvoiceId: invoice.invoice_id,
               originalInvoiceNumber: invoice.invoiceNumber,
               originalDueDate: invoice.dueDate,
-              itemId: item.id,
+              itemId: item.item_id,
               category: item.category,
               description: item.description,
               originalAmount: item.amount,
@@ -496,7 +498,7 @@ export class InvoiceService {
 
     // Calculate tenant's payment history summary
     const paymentHistory = await this.paymentRepository.find({
-      where: { paymentTenantId: tenantId },
+      where: { paymentTenantId: tenant.tenant_id },
       order: { createdAt: 'DESC' },
       take: 5,
     });
@@ -524,7 +526,7 @@ export class InvoiceService {
 
     return {
       tenant: {
-        id: tenant.id,
+        id: tenant.tenant_id,
         name: tenant.name,
         phone_number: tenant.phone_number,
         email: tenant.email,
@@ -546,7 +548,7 @@ export class InvoiceService {
       paymentHistory: {
         summary: paymentSummary,
         recentPayments: paymentHistory.map((payment) => ({
-          id: payment.id,
+          id: payment.payment_id,
           amount: payment.amount,
           paymentDate: payment.createdAt,
           paymentMethod: payment.paymentMethod,

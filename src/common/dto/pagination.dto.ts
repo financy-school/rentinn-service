@@ -3,9 +3,8 @@ import { Type } from 'class-transformer';
 
 export class PaginationDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  propertyId?: number;
+  @Type(() => String)
+  property_id?: string;
 
   @IsOptional()
   @Type(() => Number)

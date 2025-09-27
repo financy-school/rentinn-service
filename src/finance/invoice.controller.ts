@@ -8,9 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
-  ParseIntPipe,
   Request,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -51,46 +49,38 @@ export class InvoiceController {
     return this.invoiceService.getInvoiceStatistics(req.user.id, req.user.role);
   }
 
-  @Get(':id')
-  async findInvoiceById(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
-  ) {
-    const invoice = await this.invoiceService.findInvoiceById(id);
-
-    // Check if user has access to this invoice
-    if (
-      req.user.role !== UserRole.ADMIN &&
-      invoice.tenantId !== req.user.id &&
-      invoice.landlordId !== req.user.id
-    ) {
-      throw new ForbiddenException('You do not have access to this invoice');
-    }
-
-    return invoice;
+  @Get(':invoice_id')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN, UserRole.TENANT)
+  async findInvoiceById(@Param('invoice_id') invoice_id: string) {
+    return this.invoiceService.findInvoiceById(invoice_id);
   }
 
-  @Patch(':id')
+  @Patch(':invoice_id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   updateInvoice(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('invoice_id') invoice_id: string,
     @Body() updateInvoiceDto: UpdateInvoiceDto,
     @Request() req: any,
   ) {
     return this.invoiceService.updateInvoice(
-      id,
+      invoice_id,
       updateInvoiceDto,
       req.user.id,
       req.user.role,
     );
   }
 
-  @Delete(':id')
+  @Delete(':invoice_id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  deleteInvoice(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    return this.invoiceService.deleteInvoice(id, req.user.id, req.user.role);
+  deleteInvoice(@Param('invoice_id') invoice_id: string, @Request() req: any) {
+    return this.invoiceService.deleteInvoice(
+      invoice_id,
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @Post('payments')
@@ -108,25 +98,25 @@ export class InvoiceController {
     return this.invoiceService.getAvailableTenants();
   }
 
-  @Get('tenants/:id/info')
-  getTenantRentals(@Param('id') tenantId: string) {
-    return this.invoiceService.getTenantRentals(tenantId);
+  @Get('tenants/:tenant_id/info')
+  getTenantRentals(@Param('tenant_id') tenant_id: string) {
+    return this.invoiceService.getTenantRentals(tenant_id);
   }
 
-  @Get('tenants/:id/invoice-data')
+  @Get('tenants/:tenant_id/invoice-data')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  getTenantInvoiceData(@Param('id') tenantId: string) {
-    return this.invoiceService.getTenantInvoiceData(tenantId);
+  getTenantInvoiceData(@Param('tenant_id') tenant_id: string) {
+    return this.invoiceService.getTenantInvoiceData(tenant_id);
   }
 
-  @Post(':id/reminder')
+  @Post(':invoice_id/reminder')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   sendInvoiceReminder(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('invoice_id') invoice_id: string,
     @Request() req: any,
   ) {
-    return this.invoiceService.sendInvoiceReminder(id, req.user.id);
+    return this.invoiceService.sendInvoiceReminder(invoice_id, req.user.id);
   }
 }

@@ -2,7 +2,6 @@ import {
   IsDateString,
   IsEmail,
   IsNotEmpty,
-  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -30,14 +29,14 @@ export class CreateTenantDto {
   @IsOptional()
   tenantType?: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  @Type(() => Number)
-  roomId: number;
+  @Type(() => String)
+  room_id: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  propertyId: number;
+  property_id: string;
 
   @IsDateString()
   @IsNotEmpty()

@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,11 +7,18 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Room } from '../../properties/entities/room.entity';
+import { Kyc } from '../../kyc/entities/kyc.entity';
+import { Invoice } from '../../entities';
 
 @Entity('tenant')
 export class Tenant {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: false,
+    primary: true,
+  })
+  tenant_id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
@@ -45,7 +51,10 @@ export class Tenant {
   id_proof_number: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
-  property_id: number;
+  property_id: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  room_id: string;
 
   @Column({ type: 'boolean', default: false, nullable: true })
   is_on_notice: boolean;
@@ -71,7 +80,7 @@ export class Tenant {
   @Column({ type: 'boolean', default: false })
   is_deleted: boolean;
 
-  @ManyToOne(() => Room, (room) => room.id, {
+  @ManyToOne(() => Room, (room) => room.room_id, {
     onDelete: 'SET NULL',
     nullable: true,
   })
@@ -86,13 +95,15 @@ export class Tenant {
   @Column({ type: 'date', nullable: true })
   check_out_date: Date;
 
+  @OneToMany(() => Kyc, (kyc) => kyc.tenant)
+  kycDocuments: Kyc[];
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
 
-  // Relationships
-  @OneToMany('Invoice', 'tenant')
-  invoices: any[];
+  @OneToMany(() => Invoice, (invoice) => invoice.tenant)
+  invoices: Invoice[];
 }

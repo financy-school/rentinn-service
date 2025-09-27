@@ -16,15 +16,15 @@ import { InvoiceStatus } from '../entities/invoice.entity';
 export class CreateInvoiceDto {
   @IsNotEmpty()
   @IsString()
-  tenantId: string; // Changed to string for UUID
+  tenant_id: string; // Changed to string for UUID
 
   @IsOptional()
   @IsNumber()
   landlordId?: number;
 
   @IsOptional()
-  @IsNumber()
-  rentalId?: number;
+  @IsString()
+  rental_id?: string;
 
   @IsNotEmpty()
   @IsDate()

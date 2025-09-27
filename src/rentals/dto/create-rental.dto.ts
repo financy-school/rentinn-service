@@ -12,16 +12,16 @@ import {
 
 export class CreateRentalDto {
   @IsNotEmpty()
-  @IsNumber()
-  tenantId: number;
+  @IsString()
+  tenantId: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  roomId: number;
+  @IsString()
+  roomId: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  propertyId: number;
+  @IsString()
+  propertyId: string;
 
   @IsOptional()
   @IsNumber()

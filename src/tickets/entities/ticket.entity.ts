@@ -8,22 +8,22 @@ import {
 
 @Entity()
 export class Ticket {
-  @PrimaryColumn({ type: 'varchar', length: 255 })
-  id: string;
+  @PrimaryColumn({ type: 'varchar', length: 255, primary: true })
+  ticket_id: string;
 
-  @Column()
-  propertyId: number;
+  @Column({ default: null, nullable: true })
+  property_id: string;
 
-  @Column()
-  roomId: number;
+  @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
+  room_id: string;
 
-  @Column()
+  @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
   status: string;
 
-  @Column()
+  @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
   raisedBy: string;
 
-  @Column()
+  @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
   issue: string;
 
   @Column('text')

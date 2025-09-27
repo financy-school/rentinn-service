@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -25,8 +24,8 @@ export enum Currency {
 
 @Entity('user_settings')
 export class UserSettings {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, length: 70, type: 'varchar' })
+  user_setting_id: string;
 
   // Notification Settings
   @Column({ default: true })
@@ -40,6 +39,9 @@ export class UserSettings {
 
   @Column({ default: true })
   maintenanceAlerts: boolean;
+
+  @Column({ default: null, nullable: true })
+  property_id: string;
 
   @Column({ default: true })
   paymentUpdates: boolean;
@@ -95,8 +97,8 @@ export class UserSettings {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column()
-  userId: number;
+  @Column({ length: 70, type: 'varchar' })
+  user_id: string;
 
   @CreateDateColumn()
   createdAt: Date;

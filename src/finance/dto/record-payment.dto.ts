@@ -10,8 +10,8 @@ import {
 
 export class RecordPaymentDto {
   @IsNotEmpty()
-  @IsNumber()
-  invoiceId: number;
+  @IsString()
+  invoice_id: string;
 
   @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })

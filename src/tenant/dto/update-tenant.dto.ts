@@ -2,7 +2,6 @@ import {
   IsDateString,
   IsEmail,
   IsBoolean,
-  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -33,10 +32,10 @@ export class UpdateTenantDto {
   @IsOptional()
   isActive?: boolean;
 
-  @IsNumber()
+  @IsString()
   @IsOptional()
-  @Type(() => Number)
-  roomId?: number;
+  @Type(() => String)
+  room_id?: string;
 
   @IsDateString()
   @IsOptional()

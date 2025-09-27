@@ -38,7 +38,7 @@ export class AnalyticsService {
     const landlordId = user.id;
 
     // Convert property_id string to number if provided
-    const propertyId = property_id ? parseInt(property_id, 10) : undefined;
+    const propertyId = property_id ?? undefined;
 
     // Calculate date range
     const { startDate, endDate } = this.calculateDateRange(
@@ -92,9 +92,7 @@ export class AnalyticsService {
    */
   async getOccupancyAnalytics(query: any, user: any) {
     const landlordId = user.id;
-    const propertyId = query.property_id
-      ? parseInt(query.property_id, 10)
-      : undefined;
+    const propertyId = query.property_id ?? undefined;
 
     const occupancyStats = await this.getOccupancyStatistics(
       landlordId,
@@ -115,9 +113,7 @@ export class AnalyticsService {
    */
   async getRevenueTrends(query: any, user: any) {
     const landlordId = user.id;
-    const propertyId = query.property_id
-      ? parseInt(query.property_id, 10)
-      : undefined;
+    const propertyId = query.property_id ?? undefined;
     const months = query.months || 5;
 
     return await this.getRevenueTrendsData(landlordId, propertyId, months);
@@ -128,9 +124,7 @@ export class AnalyticsService {
    */
   async getProfitLossAnalytics(query: any, user: any) {
     const landlordId = user.id;
-    const propertyId = query.property_id
-      ? parseInt(query.property_id, 10)
-      : undefined;
+    const propertyId = query.property_id ?? undefined;
     const { date_range, start_date, end_date } = query;
 
     const { startDate, endDate } = this.calculateDateRange(
@@ -200,10 +194,10 @@ export class AnalyticsService {
   /**
    * Get property information
    */
-  private async getPropertyInfo(landlordId: number, propertyId?: number) {
+  private async getPropertyInfo(landlordId: string, propertyId?: string) {
     if (propertyId) {
       const property = await this.propertyRepository.findOne({
-        where: { id: propertyId, ownerId: landlordId },
+        where: { property_id: propertyId, owner_id: landlordId },
       });
 
       if (!property) {
@@ -211,11 +205,11 @@ export class AnalyticsService {
       }
 
       const totalUnits = await this.roomRepository.count({
-        where: { property: { id: propertyId } },
+        where: { property: { property_id: propertyId } },
       });
 
       return {
-        property_id: property.id.toString(),
+        property_id: property.property_id,
         property_name: property.name,
         location: `${property.city}, ${property.state}`,
         total_units: totalUnits,
@@ -223,9 +217,9 @@ export class AnalyticsService {
       };
     } else {
       // Return aggregated info for all properties
-      const properties = await this.propertyRepository.find({
-        where: { ownerId: landlordId },
-      });
+      // const properties = await this.propertyRepository.find({
+      //   where: { ownerId: landlordId },
+      // });
 
       const totalUnits = await this.roomRepository
         .createQueryBuilder('room')
@@ -247,10 +241,10 @@ export class AnalyticsService {
    * Get rent collection statistics
    */
   private async getRentCollectionStats(
-    landlordId: number,
+    landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: number,
+    propertyId?: string,
   ) {
     const rentalStats = await this.getRentalIncomeStatistics(
       landlordId,
@@ -289,7 +283,7 @@ export class AnalyticsService {
    */
   private async getRevenueTrendsData(
     landlordId: number,
-    propertyId?: number,
+    propertyId?: string,
     months: number = 5,
   ) {
     const monthsAgo = new Date();
@@ -352,10 +346,10 @@ export class AnalyticsService {
    * Get profit and loss data
    */
   private async getProfitLossData(
-    landlordId: number,
+    landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: number,
+    propertyId?: string,
   ) {
     // Get revenue data
     const rentalStats = await this.getRentalIncomeStatistics(
@@ -381,7 +375,7 @@ export class AnalyticsService {
     if (!propertyId) {
       // Get all properties
       const properties = await this.propertyRepository.find({
-        where: { ownerId: landlordId },
+        where: { owner_id: landlordId },
       });
 
       propertyBreakdown = await Promise.all(
@@ -390,7 +384,7 @@ export class AnalyticsService {
             landlordId,
             startDate,
             endDate,
-            property.id,
+            property.property_id,
           );
           const propertyExpenses = Math.round(
             propertyRevenue.actualIncome * 0.3,
@@ -479,8 +473,8 @@ export class AnalyticsService {
    * Get issues and maintenance data (simplified)
    */
   private async getIssuesMaintenanceData(
-    landlordId: number,
-    propertyId?: number,
+    landlordId: string,
+    propertyId?: string,
   ) {
     // This would require an Issues/Maintenance entity, for now returning mock data
     return {
@@ -504,7 +498,7 @@ export class AnalyticsService {
   /**
    * Get tenant info data
    */
-  private async getTenantInfoData(landlordId: number) {
+  private async getTenantInfoData(landlordId: string) {
     const tenantStats = await this.getTenantStatistics(landlordId);
 
     // Get recent KYC submissions (mock data for now)
@@ -517,9 +511,9 @@ export class AnalyticsService {
     ];
 
     // Get top tenants based on payment behavior
-    const topTenantsQuery = this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.rentalsAsTenant', 'rental')
+    const topTenantsQuery = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .innerJoin('tenant.rentalsAsTenant', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })
@@ -529,8 +523,8 @@ export class AnalyticsService {
     const topTenants = await topTenantsQuery.getMany();
 
     const topTenantsData = topTenants.map((tenant, index) => ({
-      tenant_id: tenant.id.toString(),
-      name: tenant.fullName,
+      tenant_id: tenant.tenant_id,
+      name: tenant.name,
       room_number: '201', // Would need to get actual room number
       payment_status: 'on_time', // Would need to calculate actual status
       ranking: index + 1,
@@ -552,7 +546,7 @@ export class AnalyticsService {
    */
   private async getRoomOccupancyMapData(
     landlordId: number,
-    propertyId?: number,
+    propertyId?: string,
   ) {
     const roomsQuery = this.roomRepository
       .createQueryBuilder('room')
@@ -581,11 +575,11 @@ export class AnalyticsService {
       const tenant = hasActiveRental ? room.rentals[0].tenant : null;
 
       return {
-        room_number: room.id,
+        room_number: room.room_id,
         status: hasActiveRental ? 'occupied' : 'vacant',
-        tenant_name: tenant ? tenant.fullName : undefined,
+        tenant_name: tenant ? tenant.name : undefined,
         has_issues: false, // Would need to check against issues table
-        floor: Math.floor(room.id / 100), // Extract floor from room number
+        floor: Math.floor(room.floorNumber),
       };
     });
 
@@ -600,7 +594,7 @@ export class AnalyticsService {
   // Keep existing private methods from original service
   private async getOccupancyStatistics(
     landlordId: number,
-    propertyId?: number,
+    propertyId?: string,
   ) {
     const roomsQuery = this.roomRepository
       .createQueryBuilder('room')
@@ -638,10 +632,10 @@ export class AnalyticsService {
   }
 
   private async getRentalIncomeStatistics(
-    landlordId: number,
+    landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: number,
+    propertyId?: string,
   ) {
     const rentalsQuery = this.rentalRepository
       .createQueryBuilder('rental')
@@ -711,20 +705,22 @@ export class AnalyticsService {
     };
   }
 
-  private async getTenantStatistics(landlordId: number) {
-    const tenantsQuery = this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.rentalsAsTenant', 'rental')
+  private async getTenantStatistics(landlordId: string) {
+    const tenantsQuery = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .innerJoin('tenant.rentalsAsTenant', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
-    const totalTenants = await tenantsQuery.distinctOn(['user.id']).getCount();
+    const totalTenants = await tenantsQuery
+      .distinctOn(['tenant.tenant_id'])
+      .getCount();
 
-    const overdueTenantsQuery = this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.rentalsAsTenant', 'rental')
+    const overdueTenantsQuery = this.tenantRepository
+      .createQueryBuilder('tenant')
+      .innerJoin('tenant.rentalsAsTenant', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId })

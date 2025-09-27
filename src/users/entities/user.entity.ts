@@ -1,22 +1,21 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { Property } from '../../properties/entities/property.entity';
-import { Rental } from '../../rentals/entities/rental.entity';
-import { Kyc } from '../../kyc/entities/kyc.entity';
 import { Invoice } from '../../finance/entities/invoice.entity';
+import { UserSettings } from '../../entities';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column({ primary: true, type: 'varchar', length: 70 })
+  user_id: string;
 
   @Column({ length: 100 })
   firstName: string;
@@ -64,20 +63,11 @@ export class User {
   @OneToMany(() => Property, (property) => property.owner)
   properties: Property[];
 
-  @OneToMany(() => Rental, (rental) => rental.tenant)
-  rentalsAsTenant: Rental[];
-
-  @OneToMany(() => Invoice, (invoice) => invoice.tenant)
-  invoicesAsTenant: Invoice[];
-
   @OneToMany(() => Invoice, (invoice) => invoice.landlord)
   invoicesAsLandlord: Invoice[];
 
-  @OneToMany(() => Kyc, (kyc) => kyc.user)
-  kycDocuments: Kyc[];
-
-  @OneToMany('UserSettings', 'user')
-  settings: any[];
+  @OneToOne(() => UserSettings, (settings) => settings.user)
+  settings: UserSettings;
 
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
