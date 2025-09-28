@@ -63,10 +63,10 @@ export class Room {
   @JoinColumn({ name: 'property_id' })
   property: Property;
 
-  @Column({ nullable: true, type: 'varchar' })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
   property_id: string;
 
-  @Column({ nullable: true, type: 'varchar' })
+  @Column({ nullable: true, type: 'varchar', length: 255 })
   user_id: string;
 
   @OneToMany(() => Rental, (rental) => rental.room)
