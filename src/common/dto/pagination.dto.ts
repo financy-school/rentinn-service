@@ -24,11 +24,11 @@ export class PaginationDto {
   })
   limit: number;
 
-  getSafePage(): number {
+  getSafePage?(): number {
     return this.page ?? 1;
   }
 
-  getSafeLimit(): number {
+  getSafeLimit?(): number {
     return this.limit ?? 10;
   }
 }

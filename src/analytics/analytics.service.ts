@@ -5,7 +5,10 @@ import { Rental } from '../rentals/entities/rental.entity';
 import { Payment } from '../rentals/entities/payment.entity';
 import { Property } from '../properties/entities/property.entity';
 import { Room } from '../properties/entities/room.entity';
+import { Ticket } from '../tickets/entities/ticket.entity';
+import { Kyc } from '../kyc/entities/kyc.entity';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
+import { KycStatus } from '../common/enums/kyc-status.enum';
 import {
   DashboardAnalyticsQueryDto,
   DateRangeEnum,
@@ -25,6 +28,10 @@ export class AnalyticsService {
     private readonly roomRepository: Repository<Room>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
+    @InjectRepository(Ticket)
+    private readonly ticketRepository: Repository<Ticket>,
+    @InjectRepository(Kyc)
+    private readonly kycRepository: Repository<Kyc>,
   ) {}
 
   /**
@@ -189,7 +196,7 @@ export class AnalyticsService {
    * Get property information
    */
   private async getPropertyInfo(landlordId: string, property_id?: string) {
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       const property = await this.propertyRepository.findOne({
         where: { property_id, owner_id: landlordId },
       });
@@ -218,7 +225,7 @@ export class AnalyticsService {
       const totalUnits = await this.roomRepository
         .createQueryBuilder('room')
         .innerJoin('room.property', 'property')
-        .where('property.ownerId = :landlordId', { landlordId })
+        .where('property.owner_id = :landlordId', { landlordId })
         .getCount();
 
       return {
@@ -276,7 +283,7 @@ export class AnalyticsService {
    * Get revenue trends data
    */
   private async getRevenueTrendsData(
-    landlordId: number,
+    landlordId: string,
     property_id?: string,
     months: number = 5,
   ) {
@@ -289,10 +296,10 @@ export class AnalyticsService {
       .innerJoin('payment.rental', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('payment.paymentDate >= :monthsAgo', { monthsAgo });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       monthlyIncomeQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -466,28 +473,58 @@ export class AnalyticsService {
   }
 
   /**
-   * Get issues and maintenance data (simplified)
+   * Get issues and maintenance data (improved)
    */
   private async getIssuesMaintenanceData(
     landlordId: string,
     property_id?: string,
   ) {
-    // This would require an Issues/Maintenance entity, for now returning mock data
+    // Query tickets directly for accurate counts
+    const ticketsQuery = this.ticketRepository
+      .createQueryBuilder('ticket')
+      .where('ticket.user_id = :landlordId', { landlordId });
+
+    if (property_id && property_id !== 'all') {
+      ticketsQuery.andWhere('ticket.property_id = :property_id', {
+        property_id,
+      });
+    }
+
+    const allTickets = await ticketsQuery.getMany();
+
+    const total_issues = allTickets.length;
+    const open_issues = allTickets.filter(
+      (ticket: Ticket) => ticket.status === 'PENDING',
+    ).length;
+    const resolved_issues = allTickets.filter(
+      (ticket: Ticket) => ticket.status === 'CLOSED',
+    ).length;
+    const in_progress_issues = allTickets.filter(
+      (ticket: Ticket) => ticket.status === 'IN_PROGRESS',
+    ).length;
+
+    // Get recent issues (last 5)
+    const recent_issues = allTickets
+      .sort(
+        (a: Ticket, b: Ticket) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 5)
+      .map((issue: Ticket) => ({
+        issue_id: issue.ticket_id,
+        title: issue.issue,
+        priority: 'high', // Could be enhanced with priority field
+        status: issue.status.toLowerCase(),
+        room_number: issue.room_id,
+        reported_date: issue.createdAt.toISOString(),
+      }));
+
     return {
-      total_issues: 3,
-      open_issues: 2,
-      in_progress_issues: 1,
-      resolved_issues: 0,
-      recent_issues: [
-        {
-          issue_id: '201',
-          title: 'Leaky Faucet - 201',
-          priority: 'high',
-          status: 'open',
-          room_number: '201',
-          reported_date: new Date().toISOString(),
-        },
-      ],
+      total_issues,
+      open_issues,
+      in_progress_issues,
+      resolved_issues,
+      recent_issues,
     };
   }
 
@@ -495,16 +532,37 @@ export class AnalyticsService {
    * Get tenant info data
    */
   private async getTenantInfoData(landlordId: string) {
-    const tenantStats = await this.getTenantStatistics(landlordId);
+    // const tenantStats = await this.getTenantStatistics(landlordId);
 
-    // Get recent KYC submissions (mock data for now)
-    const recentKycSubmissions = [
-      {
-        tenant_name: 'Ravi Kumar',
-        submission_date: '2025-08-30',
-        status: 'verified',
-      },
-    ];
+    // Get real KYC stats
+    const kycQuery = this.kycRepository
+      .createQueryBuilder('kyc')
+      .where('kyc.user_id = :landlordId', { landlordId });
+
+    const allKyc = await kycQuery.getMany();
+
+    const verified = allKyc.filter(
+      (kyc: Kyc) => kyc.status === KycStatus.VERIFIED,
+    ).length;
+    const pending = allKyc.filter(
+      (kyc: Kyc) => kyc.status === KycStatus.PENDING,
+    ).length;
+    const rejected = allKyc.filter(
+      (kyc: Kyc) => kyc.status === KycStatus.REJECTED,
+    ).length;
+
+    const recentKycSubmissions = allKyc
+      .sort(
+        (a: Kyc, b: Kyc) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 3)
+      .map((kyc: Kyc) => ({
+        kyc_id: kyc.kyc_id,
+        tenant_id: kyc.tenant_id,
+        status: kyc.status.toLowerCase(),
+        submitted_date: kyc.createdAt.toISOString(),
+      }));
 
     // Get top tenants based on payment behavior
     const topTenantsQuery = this.tenantRepository
@@ -512,7 +570,7 @@ export class AnalyticsService {
       .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })
       .limit(3);
 
@@ -521,16 +579,16 @@ export class AnalyticsService {
     const topTenantsData = topTenants.map((tenant, index) => ({
       tenant_id: tenant.tenant_id,
       name: tenant.name,
-      room_number: '201', // Would need to get actual room number
-      payment_status: 'on_time', // Would need to calculate actual status
+      room_number: tenant.rentals[0]?.room.room_id,
+      payment_status: 'on_time',
       ranking: index + 1,
     }));
 
     return {
       kyc_stats: {
-        verified: 12,
-        pending: 3,
-        rejected: 1,
+        verified,
+        pending,
+        rejected,
       },
       top_tenants: topTenantsData,
       recent_kyc_submissions: recentKycSubmissions,
@@ -554,9 +612,9 @@ export class AnalyticsService {
       )
       .leftJoinAndSelect('rental.tenant', 'tenant')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId });
+      .where('property.owner_id = :landlordId', { landlordId });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       roomsQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -597,9 +655,9 @@ export class AnalyticsService {
     const roomsQuery = this.roomRepository
       .createQueryBuilder('room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :ownerId', { ownerId: landlordId });
+      .where('property.owner_id = :ownerId', { ownerId: landlordId });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       roomsQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -611,10 +669,10 @@ export class AnalyticsService {
       .createQueryBuilder('room')
       .innerJoin('room.property', 'property')
       .innerJoin('room.rentals', 'rental')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       occupiedQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -643,10 +701,10 @@ export class AnalyticsService {
       .createQueryBuilder('rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       rentalsQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -664,13 +722,13 @@ export class AnalyticsService {
       .innerJoin('payment.rental', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('payment.paymentDate BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       paymentsQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -686,13 +744,13 @@ export class AnalyticsService {
       .createQueryBuilder('rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })
       .andWhere('rental.paymentStatus != :paidStatus', {
         paidStatus: PaymentStatus.PAID,
       });
 
-    if (property_id) {
+    if (property_id && property_id !== 'all') {
       overdueQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
@@ -719,7 +777,7 @@ export class AnalyticsService {
       .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
     const totalTenants = await tenantsQuery
@@ -731,7 +789,7 @@ export class AnalyticsService {
       .innerJoin('tenant.rentals', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
-      .where('property.ownerId = :landlordId', { landlordId })
+      .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })
       .andWhere('rental.paymentStatus = :status', {
         status: PaymentStatus.OVERDUE,
@@ -744,7 +802,7 @@ export class AnalyticsService {
     return {
       totalTenants,
       overdueTenants,
-      tenantRetentionRate: 0, // Would need more complex calculation
+      tenantRetentionRate: 0,
       overdueTenantRate:
         totalTenants > 0 ? (overdueTenants / totalTenants) * 100 : 0,
     };
