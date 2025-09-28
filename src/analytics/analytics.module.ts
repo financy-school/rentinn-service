@@ -7,11 +7,20 @@ import { Payment } from '../rentals/entities/payment.entity';
 import { Property } from '../properties/entities/property.entity';
 import { Room } from '../properties/entities/room.entity';
 import { User } from '../users/entities/user.entity';
-import { Tenant } from '../entities';
+import { Kyc, Tenant, Ticket } from '../entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Rental, Payment, Property, Room, User, Tenant]),
+    TypeOrmModule.forFeature([
+      Rental,
+      Payment,
+      Property,
+      Room,
+      User,
+      Tenant,
+      Ticket,
+      Kyc,
+    ]),
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
