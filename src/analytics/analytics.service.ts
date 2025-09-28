@@ -567,8 +567,8 @@ export class AnalyticsService {
     // Get top tenants based on payment behavior
     const topTenantsQuery = this.tenantRepository
       .createQueryBuilder('tenant')
-      .innerJoin('tenant.rentals', 'rental')
-      .innerJoin('rental.room', 'room')
+      .leftJoinAndSelect('tenant.rentals', 'rental')
+      .leftJoinAndSelect('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })

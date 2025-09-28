@@ -34,7 +34,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsEnum(UserRole)
-  role?: UserRole = UserRole.TENANT;
+  role?: UserRole = UserRole.LANDLORD;
 
   @IsOptional()
   @IsString()

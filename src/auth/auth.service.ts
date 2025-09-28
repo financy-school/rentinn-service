@@ -5,6 +5,7 @@ import { SettingsService } from '../settings/settings.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from '../common/enums/user-role.enum';
 
 @Injectable()
 export class AuthService {
@@ -18,15 +19,17 @@ export class AuthService {
    * Register a new user
    */
   async register(registerDto: RegisterDto) {
-    const user = await this.usersService.create(registerDto);
+    const user = await this.usersService.create({
+      ...registerDto,
+      role: UserRole.LANDLORD,
+    });
 
     // Create default settings for the new user
     await this.settingsService.createDefaultSettings(user.user_id);
-
     const payload = {
       email: user.email,
       sub: user.user_id,
-      role: user.role,
+      role: UserRole.LANDLORD,
     };
 
     return {
