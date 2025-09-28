@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  Request,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
@@ -18,6 +17,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 import { PaginationDto } from '../common/dto/pagination.dto';
 
@@ -29,32 +29,35 @@ export class PropertiesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   createProperty(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() createPropertyDto: CreatePropertyDto,
   ) {
-    return this.propertiesService.createProperty(
-      req.user.user_id,
-      createPropertyDto,
-    );
+    return this.propertiesService.createProperty(user_id, createPropertyDto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   findAllProperties(
     @Query() paginationDto: PaginationDto,
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') user_role: UserRole,
   ) {
     return this.propertiesService.findAllProperties(
       paginationDto,
-      req.user.user_id,
-      req.user.role,
+      user_id,
+      user_role,
     );
   }
 
   @Get(':property_id')
   @UseGuards(JwtAuthGuard)
-  findPropertyById(@Param('property_id') property_id: string) {
-    return this.propertiesService.findPropertyById(property_id);
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  findPropertyById(
+    @Param('property_id') property_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.propertiesService.findPropertyById(property_id, user_id);
   }
 
   @Patch(':property_id')
@@ -63,18 +66,23 @@ export class PropertiesController {
   async updateProperty(
     @Param('property_id') property_id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
+    @CurrentUser('user_id') user_id: string,
   ) {
     return this.propertiesService.updateProperty(
       property_id,
       updatePropertyDto,
+      user_id,
     );
   }
 
   @Delete(':property_id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async removeProperty(@Param('property_id') property_id: string) {
-    return this.propertiesService.removeProperty(property_id);
+  async removeProperty(
+    @Param('property_id') property_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.propertiesService.removeProperty(property_id, user_id);
   }
 
   @Post(':property_id/rooms')
@@ -83,26 +91,39 @@ export class PropertiesController {
   async createRoom(
     @Param('property_id') property_id: string,
     @Body() createRoomDto: CreateRoomDto,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.propertiesService.createRoom(property_id, createRoomDto);
+    return this.propertiesService.createRoom(
+      property_id,
+      createRoomDto,
+      user_id,
+    );
   }
 
   @Get(':property_id/rooms')
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   findPropertyRooms(
     @Param('property_id') property_id: string,
     @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.propertiesService.findPropertyRooms(property_id, paginationDto);
+    return this.propertiesService.findPropertyRooms(
+      property_id,
+      paginationDto,
+      user_id,
+    );
   }
 
   @Get(':property_id/rooms/:room_id')
   @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   findRoomById(
     @Param('property_id') property_id: string,
     @Param('room_id') room_id: string,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.propertiesService.findRoomById(property_id, room_id);
+    return this.propertiesService.findRoomById(property_id, room_id, user_id);
   }
 
   @Patch('/:property_id/rooms/:room_id')
@@ -112,11 +133,13 @@ export class PropertiesController {
     @Param('property_id') property_id: string,
     @Param('room_id') room_id: string,
     @Body() updateRoomDto: UpdateRoomDto,
+    @CurrentUser('user_id') user_id: string,
   ) {
     return this.propertiesService.updateRoom(
       property_id,
       room_id,
       updateRoomDto,
+      user_id,
     );
   }
 
@@ -126,13 +149,17 @@ export class PropertiesController {
   async removeRoom(
     @Param('property_id') property_id: string,
     @Param('room_id') room_id: string,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.propertiesService.removeRoom(property_id, room_id);
+    return this.propertiesService.removeRoom(property_id, room_id, user_id);
   }
 
   @Get('rooms/available/list')
   @UseGuards(JwtAuthGuard)
-  findAvailableRooms(@Query() paginationDto: PaginationDto) {
-    return this.propertiesService.findAvailableRooms(paginationDto);
+  findAvailableRooms(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.propertiesService.findAvailableRooms(paginationDto, user_id);
   }
 }

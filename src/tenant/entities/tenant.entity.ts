@@ -57,6 +57,9 @@ export class Tenant {
   @Column({ type: 'varchar', length: 255, nullable: false })
   room_id: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  user_id: string;
+
   @Column({ type: 'boolean', default: false, nullable: true })
   is_on_notice: boolean;
 

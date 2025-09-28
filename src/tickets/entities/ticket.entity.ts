@@ -18,6 +18,9 @@ export class Ticket {
   room_id: string;
 
   @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
+  user_id: string;
+
+  @Column({ default: null, nullable: true, type: 'varchar', length: 255 })
   status: string;
 
   @Column({ default: null, nullable: true, type: 'varchar', length: 255 })

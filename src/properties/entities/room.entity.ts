@@ -66,6 +66,9 @@ export class Room {
   @Column({ nullable: true, type: 'varchar' })
   property_id: string;
 
+  @Column({ nullable: true, type: 'varchar' })
+  user_id: string;
+
   @OneToMany(() => Rental, (rental) => rental.room)
   rentals: Rental[];
 

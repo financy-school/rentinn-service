@@ -13,7 +13,10 @@ export class TicketsService {
     private readonly ticketRepository: Repository<Ticket>,
   ) {}
 
-  async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
+  async create(
+    createTicketDto: CreateTicketDto,
+    user_id: string,
+  ): Promise<Ticket> {
     const ticket = new Ticket();
 
     ticket.ticket_id = new Date().getTime().toString();
@@ -24,17 +27,26 @@ export class TicketsService {
     ticket.room_id = createTicketDto.room_id;
     ticket.property_id = createTicketDto.property_id;
     ticket.image_document_id_list = createTicketDto.image_document_id_list;
+    ticket.user_id = user_id;
 
     return this.ticketRepository.save(ticket);
   }
 
   async findAll(
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<{ items: Ticket[]; meta: any }> {
     const { property_id, page = 1, limit = 10 } = paginationDto;
 
+    const where: any = { user_id };
+
+    // Only filter by property_id if it's provided and not 'all'
+    if (property_id && property_id !== 'all') {
+      where.property_id = property_id;
+    }
+
     const [items, total] = await this.ticketRepository.findAndCount({
-      where: { property_id },
+      where,
       skip: (page - 1) * limit,
       take: limit,
       order: { createdAt: 'DESC' },
@@ -51,9 +63,9 @@ export class TicketsService {
     };
   }
 
-  async findOne(ticket_id: string): Promise<Ticket> {
+  async findOne(ticket_id: string, user_id: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({
-      where: { ticket_id },
+      where: { ticket_id, user_id },
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${ticket_id} not found`);
@@ -64,14 +76,15 @@ export class TicketsService {
   async update(
     ticket_id: string,
     updateTicketDto: UpdateTicketDto,
+    user_id: string,
   ): Promise<Ticket> {
-    const ticket = await this.findOne(ticket_id);
+    const ticket = await this.findOne(ticket_id, user_id);
     Object.assign(ticket, updateTicketDto);
     return this.ticketRepository.save(ticket);
   }
 
-  async remove(ticket_id: string): Promise<void> {
-    const ticket = await this.findOne(ticket_id);
+  async remove(ticket_id: string, user_id: string): Promise<void> {
+    const ticket = await this.findOne(ticket_id, user_id);
     await this.ticketRepository.remove(ticket);
   }
 }

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -33,11 +34,15 @@ export class RentalsService {
   /**
    * Create a new rental agreement
    */
-  async create(createRentalDto: CreateRentalDto): Promise<Rental> {
+  async create(
+    createRentalDto: CreateRentalDto,
+    user_id: string,
+  ): Promise<Rental> {
     // Get the room to check if it's available and get rent amount
     const room = await this.propertiesService.findRoomById(
       createRentalDto.property_id,
       createRentalDto.room_id,
+      user_id,
     );
 
     if (!room.available) {
@@ -113,18 +118,31 @@ export class RentalsService {
    */
   async findAll(
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<PaginationResponse<Rental>> {
-    const { page, limit } = paginationDto;
+    const { property_id, page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const [rentals, total] = await this.rentalRepository.findAndCount({
-      relations: ['tenant', 'room', 'room.property', 'payments'],
-      skip,
-      take: limit,
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+    const queryBuilder = this.rentalRepository
+      .createQueryBuilder('rental')
+      .innerJoinAndSelect('rental.room', 'room')
+      .innerJoinAndSelect('room.property', 'property')
+      .innerJoinAndSelect('rental.tenant', 'tenant')
+      .leftJoinAndSelect('rental.payments', 'payment')
+      .where('property.owner_id = :user_id', { user_id });
+
+    // Only filter by property_id if it's provided and not 'all'
+    if (property_id && property_id !== 'all') {
+      queryBuilder.andWhere('rental.property_id = :property_id', {
+        property_id,
+      });
+    }
+
+    const [rentals, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('rental.createdAt', 'DESC')
+      .getManyAndCount();
 
     return {
       items: rentals,
@@ -141,7 +159,7 @@ export class RentalsService {
    * Find rentals for a specific landlord
    */
   async findLandlordRentals(
-    landlordId: number,
+    landlordId: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<Rental>> {
     const { page, limit } = paginationDto;
@@ -153,7 +171,7 @@ export class RentalsService {
       .innerJoinAndSelect('room.property', 'property')
       .innerJoinAndSelect('rental.tenant', 'tenant')
       .leftJoinAndSelect('rental.payments', 'payment')
-      .where('property.ownerId = :landlordId', { landlordId });
+      .where('property.owner_id = :landlordId', { landlordId });
 
     const [rentals, total] = await queryBuilder
       .skip(skip)
@@ -206,7 +224,7 @@ export class RentalsService {
   /**
    * Find a specific rental by ID
    */
-  async findOne(rental_id: string): Promise<Rental> {
+  async findOne(rental_id: string, user_id: string): Promise<Rental> {
     const rental = await this.rentalRepository.findOne({
       where: { rental_id },
       relations: ['tenant', 'room', 'room.property', 'payments'],
@@ -214,6 +232,11 @@ export class RentalsService {
 
     if (!rental) {
       throw new NotFoundException(`Rental with ID ${rental_id} not found`);
+    }
+
+    // Check if user has access to this rental (is the landlord)
+    if (!(await this.isRentalLandlord(rental_id, user_id))) {
+      throw new ForbiddenException('You do not have access to this rental');
     }
 
     return rental;
@@ -225,8 +248,9 @@ export class RentalsService {
   async update(
     rental_id: string,
     updateRentalDto: UpdateRentalDto,
+    user_id: string,
   ): Promise<Rental> {
-    const rental = await this.findOne(rental_id);
+    const rental = await this.findOne(rental_id, user_id);
 
     // Handle date conversions if present
     if (updateRentalDto.startDate) {
@@ -247,11 +271,17 @@ export class RentalsService {
       const room = await this.propertiesService.findRoomById(
         rental.property_id,
         rental.room_id,
+        user_id,
       );
       room.available = true;
-      await this.propertiesService.updateRoom(room.property_id, room.room_id, {
-        available: true,
-      });
+      await this.propertiesService.updateRoom(
+        room.property_id,
+        room.room_id,
+        {
+          available: true,
+        },
+        user_id,
+      );
     }
 
     return this.rentalRepository.save(rental);
@@ -263,8 +293,9 @@ export class RentalsService {
   async recordPayment(
     rental_id: string,
     recordPaymentDto: RecordPaymentDto,
+    user_id: string,
   ): Promise<Payment> {
-    const rental = await this.findOne(rental_id);
+    const rental = await this.findOne(rental_id, user_id);
 
     // Create payment transaction
     const queryRunner = this.dataSource.createQueryRunner();
@@ -318,19 +349,29 @@ export class RentalsService {
   /**
    * Remove a rental
    */
-  async remove(rental_id: string, room_id: string): Promise<void> {
-    const rental = await this.findOne(rental_id);
+  async remove(
+    rental_id: string,
+    room_id: string,
+    user_id: string,
+  ): Promise<void> {
+    const rental = await this.findOne(rental_id, user_id);
 
     // Free up the room if rental is active
     if (rental.isActive) {
       const room = await this.propertiesService.findRoomById(
         rental.property_id,
         room_id,
+        user_id,
       );
       room.available = true;
-      await this.propertiesService.updateRoom(room.property_id, room.room_id, {
-        available: true,
-      });
+      await this.propertiesService.updateRoom(
+        room.property_id,
+        room.room_id,
+        {
+          available: true,
+        },
+        user_id,
+      );
     }
 
     await this.rentalRepository.remove(rental);
@@ -341,6 +382,7 @@ export class RentalsService {
    */
   async findOverdueRentals(
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<PaginationResponse<Rental>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
@@ -354,6 +396,7 @@ export class RentalsService {
       .innerJoinAndSelect('rental.room', 'room')
       .innerJoinAndSelect('room.property', 'property')
       .where('rental.isActive = :isActive', { isActive: true })
+      .andWhere('property.owner_id = :user_id', { user_id })
       .andWhere('rental.paymentStatus != :paidStatus', {
         paidStatus: PaymentStatus.PAID,
       })
@@ -395,9 +438,9 @@ export class RentalsService {
   /**
    * Check if user is the tenant for a rental
    */
-  async isRentalTenant(rental_id: string, userId: string): Promise<boolean> {
+  async isRentalTenant(rental_id: string, user_id: string): Promise<boolean> {
     const rental = await this.rentalRepository.findOne({
-      where: { rental_id, tenant_id: userId },
+      where: { rental_id, tenant_id: user_id },
     });
 
     return !!rental;
