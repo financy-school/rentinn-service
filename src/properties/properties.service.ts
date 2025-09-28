@@ -16,6 +16,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { UserRole } from '../common/enums/user-role.enum';
 import { v7 as uuidv7 } from 'uuid';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class PropertiesService {
@@ -149,7 +150,7 @@ export class PropertiesService {
     }
 
     const new_room = new Room();
-    new_room.room_id = `ROOM-${uuidv7()}`;
+    new_room.room_id = randomBytes(4).toString('hex').toUpperCase();
     new_room.name = createRoomDto.roomName;
     new_room.areaType = createRoomDto.areaType;
     new_room.rentAmount = createRoomDto.rentAmount;
