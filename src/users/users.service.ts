@@ -58,7 +58,8 @@ export class UsersService {
     paginationDto: PaginationDto,
     role?: UserRole,
   ): Promise<PaginationResponse<User>> {
-    const { page, limit } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.userRepository.createQueryBuilder('user');
@@ -163,7 +164,8 @@ export class UsersService {
     landlordId: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<User>> {
-    const { page, limit } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     // Get all rentals from landlord's properties

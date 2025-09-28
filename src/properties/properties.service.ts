@@ -51,7 +51,8 @@ export class PropertiesService {
     userId?: string,
     userRole?: UserRole,
   ): Promise<PaginationResponse<Property>> {
-    const { page = 1, limit = 10 } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Property> = {};
@@ -183,8 +184,8 @@ export class PropertiesService {
     paginationDto: PaginationDto,
     user_id: string,
   ): Promise<PaginationResponse<Room>> {
-    const page = Number(paginationDto.page) || 1;
-    const limit = Number(paginationDto.limit) || 10;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.roomRepository
@@ -277,7 +278,8 @@ export class PropertiesService {
     paginationDto: PaginationDto,
     user_id: string,
   ): Promise<PaginationResponse<Room>> {
-    const { page, limit } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.roomRepository

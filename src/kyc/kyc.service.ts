@@ -55,7 +55,9 @@ export class KycService {
     paginationDto: PaginationDto,
     user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
-    const { page, limit, property_id } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
+    const { property_id } = paginationDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.kycRepository
@@ -95,7 +97,8 @@ export class KycService {
     paginationDto: PaginationDto,
     user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
-    const { page, limit } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
@@ -196,7 +199,9 @@ export class KycService {
     paginationDto: PaginationDto,
     user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
-    const { page, limit, property_id } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
+    const { property_id } = paginationDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.kycRepository

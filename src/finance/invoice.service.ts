@@ -109,7 +109,8 @@ export class InvoiceService {
     userId?: number,
     userRole?: UserRole,
   ): Promise<PaginationResponse<Invoice>> {
-    const { page = 1, limit = 10 } = paginationDto;
+    const page = paginationDto.getSafePage();
+    const limit = paginationDto.getSafeLimit();
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Invoice> = {};

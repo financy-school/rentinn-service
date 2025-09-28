@@ -23,4 +23,12 @@ export class PaginationDto {
     return isNaN(num) ? 10 : Math.max(1, num);
   })
   limit: number;
+
+  getSafePage(): number {
+    return this.page ?? 1;
+  }
+
+  getSafeLimit(): number {
+    return this.limit ?? 10;
+  }
 }
