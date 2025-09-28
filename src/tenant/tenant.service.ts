@@ -228,7 +228,7 @@ export class TenantService {
 
     Object.assign(tenant, {
       name: updateTenantDto.name ?? tenant.name,
-      phone_number: updateTenantDto.phoneNumber ?? tenant.phone_number,
+      phone_number: updateTenantDto.phone_number ?? tenant.phone_number,
       email: updateTenantDto.email ?? tenant.email,
       id_proof_type: updateTenantDto.idProofType ?? tenant.id_proof_type,
       id_proof_number: updateTenantDto.idProofNumber ?? tenant.id_proof_number,

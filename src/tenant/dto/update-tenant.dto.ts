@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsOptional,
   IsString,
+  IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -14,11 +15,19 @@ export class UpdateTenantDto {
 
   @IsString()
   @IsOptional()
-  phoneNumber?: string;
+  phone_number?: string;
+
+  @IsString()
+  @IsOptional()
+  alternate_phone?: string;
 
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsString()
+  @IsOptional()
+  tenantType?: string;
 
   @IsString()
   @IsOptional()
@@ -44,4 +53,20 @@ export class UpdateTenantDto {
   @IsDateString()
   @IsOptional()
   checkOutDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  addRentOn?: string;
+
+  @IsString()
+  @IsOptional()
+  agreementPeriod?: string;
+
+  @IsString()
+  @IsOptional()
+  lockInPeriod?: string;
+
+  @IsObject()
+  @IsOptional()
+  image_id_list?: string[];
 }
