@@ -152,7 +152,7 @@ export class PropertiesService {
 
     const new_room = new Room();
     new_room.room_id = randomBytes(4).toString('hex').toUpperCase();
-    new_room.name = createRoomDto.roomName;
+    new_room.name = createRoomDto.name;
     new_room.areaType = createRoomDto.areaType;
     new_room.rentAmount = createRoomDto.rentAmount;
     new_room.securityAmount = createRoomDto.securityAmount;

@@ -12,7 +12,7 @@ import {
 export class CreateRoomDto {
   @IsNotEmpty()
   @IsString()
-  roomName: string;
+  name: string;
 
   @IsOptional()
   @IsString()
