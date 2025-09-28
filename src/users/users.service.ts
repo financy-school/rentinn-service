@@ -114,9 +114,10 @@ export class UsersService {
     let property_id: string;
     // If the user is a landlord, load their properties
     if (user.role === UserRole.LANDLORD) {
-      property_id = (
-        await this.propertyService.findPropertiesByOwnerId(user.user_id)
-      ).property_id;
+      const property = await this.propertyService.findPropertiesByOwnerId(
+        user.user_id,
+      );
+      property_id = property ? property.property_id : null;
     }
 
     return { ...user, property_id };
