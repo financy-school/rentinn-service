@@ -9,12 +9,18 @@ export class PaginationDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Transform(({ value }) => (value !== undefined ? Number(value) : 1))
+  @Transform(({ value }) => {
+    const num = Number(value);
+    return isNaN(num) ? 1 : Math.max(1, num);
+  })
   page: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Transform(({ value }) => (value !== undefined ? Number(value) : 10))
+  @Transform(({ value }) => {
+    const num = Number(value);
+    return isNaN(num) ? 10 : Math.max(1, num);
+  })
   limit: number;
 }
