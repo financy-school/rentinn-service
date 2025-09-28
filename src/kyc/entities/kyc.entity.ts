@@ -14,10 +14,10 @@ export class Kyc {
   @Column({ primary: true, type: 'varchar', length: 70 })
   kyc_id: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 100, default: null, nullable: true })
   documentType: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 100, default: null, nullable: true })
   documentNumber: string;
 
   @Column({ nullable: true })
