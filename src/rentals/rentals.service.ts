@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -49,21 +48,6 @@ export class RentalsService {
       throw new BadRequestException('Room is not available for rent');
     }
 
-    // Check if room has any active rentals
-    if (room.rentals && room.rentals.some((rental) => rental.isActive)) {
-      throw new ConflictException('Room already has an active rental');
-    }
-
-    // Check if tenant has verified KYC
-    const hasVerifiedKyc = await this.kycService.hasVerifiedKyc(
-      createRentalDto.tenant_id,
-    );
-    if (!hasVerifiedKyc) {
-      throw new BadRequestException(
-        'Tenant must have at least one verified KYC document',
-      );
-    }
-
     // Use room's rent amount if not specified
     if (!createRentalDto.rentAmount) {
       createRentalDto.rentAmount = room.rentAmount;
@@ -96,14 +80,8 @@ export class RentalsService {
 
       const savedRental = await queryRunner.manager.save(newRental);
 
-      // Update room availability
-      await queryRunner.manager.update(
-        room.constructor,
-        { room_id: room.room_id },
-        { isAvailable: false },
-      );
-
       await queryRunner.commitTransaction();
+
       return savedRental;
     } catch (error) {
       await queryRunner.rollbackTransaction();
