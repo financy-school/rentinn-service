@@ -34,9 +34,6 @@ export class AnalyticsService {
     const { property_id, date_range, start_date, end_date } = query;
     const landlordId = user.user_id;
 
-    // Convert property_id string to number if provided
-    const propertyId = property_id ?? undefined;
-
     // Calculate date range
     const { startDate, endDate } = this.calculateDateRange(
       date_range,
@@ -55,14 +52,14 @@ export class AnalyticsService {
       tenantInfoData,
       roomOccupancyMapData,
     ] = await Promise.all([
-      this.getPropertyInfo(landlordId, propertyId),
-      this.getOccupancyStatistics(landlordId, propertyId),
-      this.getRentCollectionStats(landlordId, startDate, endDate, propertyId),
-      this.getRevenueTrendsData(landlordId, propertyId, 5),
-      this.getProfitLossData(landlordId, startDate, endDate, propertyId),
-      this.getIssuesMaintenanceData(landlordId, propertyId),
+      this.getPropertyInfo(landlordId, property_id),
+      this.getOccupancyStatistics(landlordId, property_id),
+      this.getRentCollectionStats(landlordId, startDate, endDate, property_id),
+      this.getRevenueTrendsData(landlordId, property_id, 5),
+      this.getProfitLossData(landlordId, startDate, endDate, property_id),
+      this.getIssuesMaintenanceData(landlordId, property_id),
       this.getTenantInfoData(landlordId),
-      this.getRoomOccupancyMapData(landlordId, propertyId),
+      this.getRoomOccupancyMapData(landlordId, property_id),
     ]);
 
     return {
@@ -89,11 +86,11 @@ export class AnalyticsService {
    */
   async getOccupancyAnalytics(query: any, user: any) {
     const landlordId = user.user_id;
-    const propertyId = query.property_id ?? undefined;
+    const property_id = query.property_id ?? undefined;
 
     const occupancyStats = await this.getOccupancyStatistics(
       landlordId,
-      propertyId,
+      property_id,
     );
 
     return {
@@ -110,10 +107,10 @@ export class AnalyticsService {
    */
   async getRevenueTrends(query: any, user: any) {
     const landlordId = user.user_id;
-    const propertyId = query.property_id ?? undefined;
+    const property_id = query.property_id ?? undefined;
     const months = query.months || 5;
 
-    return await this.getRevenueTrendsData(landlordId, propertyId, months);
+    return await this.getRevenueTrendsData(landlordId, property_id, months);
   }
 
   /**
@@ -121,7 +118,7 @@ export class AnalyticsService {
    */
   async getProfitLossAnalytics(query: any, user: any) {
     const landlordId = user.user_id;
-    const propertyId = query.property_id ?? undefined;
+    const property_id = query.property_id ?? undefined;
     const { date_range, start_date, end_date } = query;
 
     const { startDate, endDate } = this.calculateDateRange(
@@ -134,7 +131,7 @@ export class AnalyticsService {
       landlordId,
       startDate,
       endDate,
-      propertyId,
+      property_id,
     );
   }
 
@@ -191,10 +188,10 @@ export class AnalyticsService {
   /**
    * Get property information
    */
-  private async getPropertyInfo(landlordId: string, propertyId?: string) {
-    if (propertyId) {
+  private async getPropertyInfo(landlordId: string, property_id?: string) {
+    if (property_id) {
       const property = await this.propertyRepository.findOne({
-        where: { property_id: propertyId, owner_id: landlordId },
+        where: { property_id, owner_id: landlordId },
       });
 
       if (!property) {
@@ -202,7 +199,7 @@ export class AnalyticsService {
       }
 
       const totalUnits = await this.roomRepository.count({
-        where: { property: { property_id: propertyId } },
+        where: { property: { property_id: property_id } },
       });
 
       return {
@@ -241,13 +238,13 @@ export class AnalyticsService {
     landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: string,
+    property_id?: string,
   ) {
     const rentalStats = await this.getRentalIncomeStatistics(
       landlordId,
       startDate,
       endDate,
-      propertyId,
+      property_id,
     );
 
     const collectionRate =
@@ -280,7 +277,7 @@ export class AnalyticsService {
    */
   private async getRevenueTrendsData(
     landlordId: number,
-    propertyId?: string,
+    property_id?: string,
     months: number = 5,
   ) {
     const monthsAgo = new Date();
@@ -295,9 +292,9 @@ export class AnalyticsService {
       .where('property.ownerId = :landlordId', { landlordId })
       .andWhere('payment.paymentDate >= :monthsAgo', { monthsAgo });
 
-    if (propertyId) {
-      monthlyIncomeQuery.andWhere('property.property_id = :propertyId', {
-        propertyId,
+    if (property_id) {
+      monthlyIncomeQuery.andWhere('property.property_id = :property_id', {
+        property_id,
       });
     }
 
@@ -348,14 +345,14 @@ export class AnalyticsService {
     landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: string,
+    property_id?: string,
   ) {
     // Get revenue data
     const rentalStats = await this.getRentalIncomeStatistics(
       landlordId,
       startDate,
       endDate,
-      propertyId,
+      property_id,
     );
 
     // Calculate simplified expenses (30% of revenue)
@@ -371,7 +368,7 @@ export class AnalyticsService {
     }
     let propertyBreakdown: PropertyBreakdownItem[] = [];
 
-    if (!propertyId) {
+    if (!property_id) {
       // Get all properties
       const properties = await this.propertyRepository.find({
         where: { owner_id: landlordId },
@@ -473,7 +470,7 @@ export class AnalyticsService {
    */
   private async getIssuesMaintenanceData(
     landlordId: string,
-    propertyId?: string,
+    property_id?: string,
   ) {
     // This would require an Issues/Maintenance entity, for now returning mock data
     return {
@@ -545,7 +542,7 @@ export class AnalyticsService {
    */
   private async getRoomOccupancyMapData(
     landlordId: number,
-    propertyId?: string,
+    property_id?: string,
   ) {
     const roomsQuery = this.roomRepository
       .createQueryBuilder('room')
@@ -559,8 +556,10 @@ export class AnalyticsService {
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :landlordId', { landlordId });
 
-    if (propertyId) {
-      roomsQuery.andWhere('property.property_id = :propertyId', { propertyId });
+    if (property_id) {
+      roomsQuery.andWhere('property.property_id = :property_id', {
+        property_id,
+      });
     }
 
     const rooms = await roomsQuery.getMany();
@@ -593,15 +592,17 @@ export class AnalyticsService {
   // Keep existing private methods from original service
   private async getOccupancyStatistics(
     landlordId: number,
-    propertyId?: string,
+    property_id?: string,
   ) {
     const roomsQuery = this.roomRepository
       .createQueryBuilder('room')
       .innerJoin('room.property', 'property')
       .where('property.ownerId = :ownerId', { ownerId: landlordId });
 
-    if (propertyId) {
-      roomsQuery.andWhere('property.property_id = :propertyId', { propertyId });
+    if (property_id) {
+      roomsQuery.andWhere('property.property_id = :property_id', {
+        property_id,
+      });
     }
 
     const totalRooms = await roomsQuery.getCount();
@@ -613,9 +614,9 @@ export class AnalyticsService {
       .where('property.ownerId = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
-    if (propertyId) {
-      occupiedQuery.andWhere('property.property_id = :propertyId', {
-        propertyId,
+    if (property_id) {
+      occupiedQuery.andWhere('property.property_id = :property_id', {
+        property_id,
       });
     }
 
@@ -636,7 +637,7 @@ export class AnalyticsService {
     landlordId: string,
     startDate: Date,
     endDate: Date,
-    propertyId?: string,
+    property_id?: string,
   ) {
     const rentalsQuery = this.rentalRepository
       .createQueryBuilder('rental')
@@ -645,9 +646,9 @@ export class AnalyticsService {
       .where('property.ownerId = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true });
 
-    if (propertyId) {
-      rentalsQuery.andWhere('property.property_id = :propertyId', {
-        propertyId,
+    if (property_id) {
+      rentalsQuery.andWhere('property.property_id = :property_id', {
+        property_id,
       });
     }
 
@@ -669,9 +670,9 @@ export class AnalyticsService {
         endDate,
       });
 
-    if (propertyId) {
-      paymentsQuery.andWhere('property.property_id = :propertyId', {
-        propertyId,
+    if (property_id) {
+      paymentsQuery.andWhere('property.property_id = :property_id', {
+        property_id,
       });
     }
 
@@ -691,9 +692,9 @@ export class AnalyticsService {
         paidStatus: PaymentStatus.PAID,
       });
 
-    if (propertyId) {
-      overdueQuery.andWhere('property.property_id = :propertyId', {
-        propertyId,
+    if (property_id) {
+      overdueQuery.andWhere('property.property_id = :property_id', {
+        property_id,
       });
     }
 

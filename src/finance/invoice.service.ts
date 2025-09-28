@@ -498,7 +498,7 @@ export class InvoiceService {
 
     // Calculate tenant's payment history summary
     const paymentHistory = await this.paymentRepository.find({
-      where: { paymentTenantId: tenant.tenant_id },
+      where: { payment_tenant_id: tenant.tenant_id },
       order: { createdAt: 'DESC' },
       take: 5,
     });

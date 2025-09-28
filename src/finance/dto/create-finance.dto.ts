@@ -10,7 +10,7 @@ import {
 export class CreateFinanceDto {
   @IsUUID()
   @IsNotEmpty()
-  propertyId: string;
+  property_id: string;
 
   @IsNumber()
   @IsNotEmpty()

@@ -70,7 +70,7 @@ export class Invoice {
 
   // Relationships
   @ManyToOne(() => Tenant, { eager: true })
-  @JoinColumn({ name: 'tenantId' })
+  @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column({ type: 'varchar', length: 50, default: null, nullable: true })

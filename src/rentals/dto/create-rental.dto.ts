@@ -13,15 +13,15 @@ import {
 export class CreateRentalDto {
   @IsNotEmpty()
   @IsString()
-  tenantId: string;
+  tenant_id: string;
 
   @IsNotEmpty()
   @IsString()
-  roomId: string;
+  room_id: string;
 
   @IsNotEmpty()
   @IsString()
-  propertyId: string;
+  property_id: string;
 
   @IsOptional()
   @IsNumber()

@@ -65,11 +65,11 @@ export class Payment {
 
   // Relationship with Tenant (for direct tenant payments)
   @ManyToOne(() => Tenant, { nullable: true })
-  @JoinColumn({ name: 'tenantId' })
+  @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column({ nullable: true })
-  paymentTenantId: string; // UUID for tenant
+  payment_tenant_id: string; // UUID for tenant
 
   @CreateDateColumn()
   createdAt: Date;

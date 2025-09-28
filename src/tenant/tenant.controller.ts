@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 
@@ -43,25 +42,25 @@ export class TenantsController {
     return this.tenantsService.findActive(paginationDto);
   }
 
-  @Get('room/:roomId')
+  @Get('room/:room_id')
   @UseGuards(JwtAuthGuard)
   findByRoom(
-    @Param('roomId', ParseIntPipe) roomId: number,
+    @Param('room_id') room_id: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.tenantsService.findByRoom(roomId, paginationDto);
+    return this.tenantsService.findByRoom(room_id, paginationDto);
   }
 
-  @Get('property/:propertyId/room/:roomId')
+  @Get('property/:property_id/room/:room_id')
   @UseGuards(JwtAuthGuard)
   findByPropertyAndRoom(
-    @Param('propertyId') propertyId: string,
-    @Param('roomId') roomId: string,
+    @Param('property_id') property_id: string,
+    @Param('room_id') room_id: string,
     @Query() paginationDto: PaginationDto,
   ) {
     return this.tenantsService.findByPropertyAndRoom(
-      propertyId,
-      roomId,
+      property_id,
+      room_id,
       paginationDto,
     );
   }

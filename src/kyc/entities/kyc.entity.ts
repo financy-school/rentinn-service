@@ -39,11 +39,11 @@ export class Kyc {
   expiryDate: Date;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.kycDocuments)
-  @JoinColumn({ name: 'tenantId' })
+  @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column({ type: 'varchar' })
-  tenantId: string;
+  tenant_id: string;
 
   @Column({ default: null, nullable: true })
   verifiedBy: number;

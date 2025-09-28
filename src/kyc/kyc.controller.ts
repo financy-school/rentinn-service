@@ -37,13 +37,13 @@ export class KycController {
     return this.kycService.findAll(paginationDto);
   }
 
-  @Get('tenant/:tenantId')
+  @Get('tenant/:tenant_id')
   @UseGuards(JwtAuthGuard)
   findByTenant(
-    @Param('tenantId') tenantId: string,
+    @Param('tenant_id') tenant_id: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.kycService.findByTenant(tenantId, paginationDto);
+    return this.kycService.findByTenant(tenant_id, paginationDto);
   }
 
   @Get('pending')

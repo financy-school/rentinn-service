@@ -36,8 +36,8 @@ export class RentalsService {
   async create(createRentalDto: CreateRentalDto): Promise<Rental> {
     // Get the room to check if it's available and get rent amount
     const room = await this.propertiesService.findRoomById(
-      createRentalDto.propertyId,
-      createRentalDto.roomId,
+      createRentalDto.property_id,
+      createRentalDto.room_id,
     );
 
     if (!room.available) {
@@ -51,7 +51,7 @@ export class RentalsService {
 
     // Check if tenant has verified KYC
     const hasVerifiedKyc = await this.kycService.hasVerifiedKyc(
-      createRentalDto.tenantId,
+      createRentalDto.tenant_id,
     );
     if (!hasVerifiedKyc) {
       throw new BadRequestException(
@@ -176,14 +176,14 @@ export class RentalsService {
    * Find rentals for a specific tenant
    */
   async findTenantRentals(
-    tenantId: string,
+    tenant_id: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<Rental>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [rentals, total] = await this.rentalRepository.findAndCount({
-      where: { tenantId },
+      where: { tenant_id },
       relations: ['room', 'room.property', 'payments'],
       skip,
       take: limit,
@@ -246,7 +246,7 @@ export class RentalsService {
     if (rental.isActive === false) {
       const room = await this.propertiesService.findRoomById(
         rental.property_id,
-        rental.roomId,
+        rental.room_id,
       );
       room.available = true;
       await this.propertiesService.updateRoom(room.property_id, room.room_id, {
@@ -397,7 +397,7 @@ export class RentalsService {
    */
   async isRentalTenant(rental_id: string, userId: string): Promise<boolean> {
     const rental = await this.rentalRepository.findOne({
-      where: { rental_id, tenantId: userId },
+      where: { rental_id, tenant_id: userId },
     });
 
     return !!rental;

@@ -227,13 +227,13 @@ export class TenantService {
   }
 
   async findByRoom(
-    roomId: number,
+    room_id: string,
     { page = 1, limit = 10 }: PaginationDto,
   ): Promise<Tenant[]> {
     return this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.room', 'room')
-      .where('room.room_id = :roomId', { roomId })
+      .where('room.room_id = :room_id', { room_id })
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('tenant.created_at', 'DESC')
@@ -241,15 +241,15 @@ export class TenantService {
   }
 
   async findByPropertyAndRoom(
-    propertyId: string,
-    roomId: string,
+    property_id: string,
+    room_id: string,
     { page = 1, limit = 10 }: PaginationDto,
   ): Promise<Tenant[]> {
     return this.tenantRepository
       .createQueryBuilder('tenant')
       .leftJoinAndSelect('tenant.room', 'room')
-      .where('room.room_id = :roomId', { roomId })
-      .andWhere('room.property_id = :propertyId', { propertyId })
+      .where('room.room_id = :room_id', { room_id })
+      .andWhere('room.property_id = :property_id', { property_id })
       .skip((page - 1) * limit)
       .take(limit)
       .orderBy('tenant.created_at', 'DESC')

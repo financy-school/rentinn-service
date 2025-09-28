@@ -29,18 +29,18 @@ export class KycService {
   async create(createKycDto: CreateKycDto): Promise<Kyc> {
     // Verify tenant exists
     const tenant = await this.tenantRepository.findOne({
-      where: { tenant_id: createKycDto.tenantId },
+      where: { tenant_id: createKycDto.tenant_id },
     });
     if (!tenant) {
       throw new NotFoundException(
-        `Tenant with ID ${createKycDto.tenantId} not found`,
+        `Tenant with ID ${createKycDto.tenant_id} not found`,
       );
     }
 
     const newKyc = this.kycRepository.create({
       kyc_id: `KYC-${uuidv7()}`,
       ...createKycDto,
-      tenantId: createKycDto.tenantId,
+      tenant_id: createKycDto.tenant_id,
     });
 
     return this.kycRepository.save(newKyc);
@@ -79,14 +79,14 @@ export class KycService {
    * Find all KYC documents for a specific tenant
    */
   async findByTenant(
-    tenantId: string,
+    tenant_id: string,
     paginationDto: PaginationDto,
   ): Promise<PaginationResponse<Kyc>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
-      where: { tenantId },
+      where: { tenant_id },
       relations: ['tenant'],
       skip,
       take: limit,
@@ -205,10 +205,10 @@ export class KycService {
   /**
    * Check if tenant has any verified KYC document
    */
-  async hasVerifiedKyc(tenantId: string): Promise<boolean> {
+  async hasVerifiedKyc(tenant_id: string): Promise<boolean> {
     const count = await this.kycRepository.count({
       where: {
-        tenantId,
+        tenant_id,
         status: KycStatus.VERIFIED,
       },
     });

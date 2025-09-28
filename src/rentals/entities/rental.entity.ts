@@ -52,18 +52,18 @@ export class Rental {
   rentDueDay: number;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.rentals)
-  @JoinColumn({ name: 'tenantId' })
+  @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column()
-  tenantId: string;
+  tenant_id: string;
 
   @ManyToOne(() => Room, (room) => room.rentals)
-  @JoinColumn({ name: 'roomId' })
+  @JoinColumn({ name: 'room_id' })
   room: Room;
 
   @Column({ type: 'varchar', length: 50 })
-  roomId: string;
+  room_id: string;
 
   @Column({ default: null, nullable: true })
   property_id: string;

@@ -28,9 +28,9 @@ export class FinanceController {
   }
 
   // Fetch financial details for a specific property
-  @Get('property/:propertyId')
-  async findByProperty(@Param('propertyId') propertyId: string) {
-    return await this.financeService.findByProperty(propertyId);
+  @Get('property/:property_id')
+  async findByProperty(@Param('property_id') property_id: string) {
+    return await this.financeService.findByProperty(property_id);
   }
 
   // Fetch a specific finance record by its ID

@@ -24,9 +24,9 @@ export class FinanceService {
   }
 
   // Get finance details for a specific property
-  async findByProperty(propertyId: string): Promise<Finance[]> {
+  async findByProperty(property_id: string): Promise<Finance[]> {
     return await this.financeRepository.find({
-      where: { property_id: propertyId },
+      where: { property_id },
     });
   }
 

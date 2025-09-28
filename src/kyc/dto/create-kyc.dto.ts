@@ -12,7 +12,7 @@ export class CreateKycDto {
 
   @IsNotEmpty()
   @IsString()
-  tenantId: string;
+  tenant_id: string;
 
   @IsNotEmpty()
   @IsString()
