@@ -562,6 +562,7 @@ export class AnalyticsService {
         tenant_id: kyc.tenant_id,
         status: kyc.status.toLowerCase(),
         submitted_date: kyc.createdAt.toISOString(),
+        tenant_name: kyc.tenant ? kyc.tenant.name : 'N/A',
       }));
 
     // Get top tenants based on payment behavior
