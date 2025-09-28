@@ -15,11 +15,11 @@ export class CreateTenantDto {
 
   @IsString()
   @IsNotEmpty()
-  phone: string;
+  phone_number: string;
 
   @IsString()
   @IsOptional()
-  alternatePhone?: string;
+  alternate_phone?: string;
 
   @IsEmail()
   @IsOptional()

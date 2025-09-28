@@ -42,8 +42,8 @@ export class TenantService {
     const tenant = this.tenantRepository.create({
       tenant_id: `TENANT-${uuidv7()}`,
       name: createTenantDto.name,
-      phone_number: createTenantDto.phone,
-      alternate_phone: createTenantDto.alternatePhone,
+      phone_number: createTenantDto.phone_number,
+      alternate_phone: createTenantDto.alternate_phone,
       email: createTenantDto.email,
       tenant_type: createTenantDto.tenantType,
       agreement_period: createTenantDto.agreementPeriod,
