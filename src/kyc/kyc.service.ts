@@ -26,10 +26,10 @@ export class KycService {
   /**
    * Create a new KYC document for a tenant
    */
-  async create(createKycDto: CreateKycDto): Promise<Kyc> {
+  async create(createKycDto: CreateKycDto, user_id: string): Promise<Kyc> {
     // Verify tenant exists
     const tenant = await this.tenantRepository.findOne({
-      where: { tenant_id: createKycDto.tenant_id },
+      where: { tenant_id: createKycDto.tenant_id, user_id: user_id },
     });
     if (!tenant) {
       throw new NotFoundException(
@@ -41,6 +41,8 @@ export class KycService {
       kyc_id: `KYC-${uuidv7()}`,
       ...createKycDto,
       tenant_id: createKycDto.tenant_id,
+      user_id: user_id,
+      status: KycStatus.PENDING,
     });
 
     return this.kycRepository.save(newKyc);
@@ -51,18 +53,28 @@ export class KycService {
    */
   async findAll(
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
-    const { page, limit } = paginationDto;
+    const { page, limit, property_id } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const [kycs, total] = await this.kycRepository.findAndCount({
-      relations: ['tenant'],
-      skip,
-      take: limit,
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+    const queryBuilder = this.kycRepository
+      .createQueryBuilder('kyc')
+      .leftJoinAndSelect('kyc.tenant', 'tenant')
+      .where('kyc.user_id = :user_id', { user_id })
+      .orderBy('kyc.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    if (property_id && property_id !== 'all') {
+      queryBuilder
+        .leftJoin('tenant.rentals', 'rental')
+        .leftJoin('rental.room', 'room')
+        .leftJoin('room.property', 'property')
+        .andWhere('property.property_id = :property_id', { property_id });
+    }
+
+    const [kycs, total] = await queryBuilder.getManyAndCount();
 
     return {
       items: kycs,
@@ -81,12 +93,13 @@ export class KycService {
   async findByTenant(
     tenant_id: string,
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
     const { page, limit } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [kycs, total] = await this.kycRepository.findAndCount({
-      where: { tenant_id },
+      where: { tenant_id, user_id },
       relations: ['tenant'],
       skip,
       take: limit,
@@ -109,9 +122,9 @@ export class KycService {
   /**
    * Find a specific KYC document by ID
    */
-  async findOne(kyc_id: string): Promise<Kyc> {
+  async findOne(kyc_id: string, user_id: string): Promise<Kyc> {
     const kyc = await this.kycRepository.findOne({
-      where: { kyc_id },
+      where: { kyc_id, user_id },
       relations: ['tenant'],
     });
 
@@ -125,8 +138,12 @@ export class KycService {
   /**
    * Update a KYC document
    */
-  async update(kyc_id: string, updateKycDto: UpdateKycDto): Promise<Kyc> {
-    const kyc = await this.findOne(kyc_id);
+  async update(
+    kyc_id: string,
+    updateKycDto: UpdateKycDto,
+    user_id: string,
+  ): Promise<Kyc> {
+    const kyc = await this.findOne(kyc_id, user_id);
 
     // If status is changing to VERIFIED, record verification details
     if (
@@ -145,11 +162,11 @@ export class KycService {
    */
   async verify(
     kyc_id: string,
-    adminId: number,
+    user_id: string,
     status: KycStatus,
     notes?: string,
   ): Promise<Kyc> {
-    const kyc = await this.findOne(kyc_id);
+    const kyc = await this.findOne(kyc_id, user_id);
 
     // Cannot verify already verified or rejected documents
     if (kyc.status !== KycStatus.PENDING) {
@@ -158,7 +175,7 @@ export class KycService {
 
     kyc.status = status;
     kyc.verificationNotes = notes;
-    kyc.verifiedBy = adminId;
+    kyc.verifiedBy = user_id;
     kyc.verifiedAt = new Date();
 
     return this.kycRepository.save(kyc);
@@ -167,8 +184,8 @@ export class KycService {
   /**
    * Remove a KYC document
    */
-  async remove(kyc_id: string): Promise<void> {
-    const kyc = await this.findOne(kyc_id);
+  async remove(kyc_id: string, user_id: string): Promise<void> {
+    const kyc = await this.findOne(kyc_id, user_id);
     await this.kycRepository.remove(kyc);
   }
 
@@ -177,19 +194,29 @@ export class KycService {
    */
   async findPendingVerifications(
     paginationDto: PaginationDto,
+    user_id: string,
   ): Promise<PaginationResponse<Kyc>> {
-    const { page, limit } = paginationDto;
+    const { page, limit, property_id } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const [kycs, total] = await this.kycRepository.findAndCount({
-      where: { status: KycStatus.PENDING },
-      relations: ['tenant'],
-      skip,
-      take: limit,
-      order: {
-        createdAt: 'ASC', // Oldest first
-      },
-    });
+    const queryBuilder = this.kycRepository
+      .createQueryBuilder('kyc')
+      .leftJoinAndSelect('kyc.tenant', 'tenant')
+      .where('kyc.status = :status', { status: KycStatus.PENDING })
+      .andWhere('kyc.user_id = :user_id', { user_id })
+      .orderBy('kyc.createdAt', 'ASC')
+      .skip(skip)
+      .take(limit);
+
+    if (property_id && property_id !== 'all') {
+      queryBuilder
+        .leftJoin('tenant.rentals', 'rental')
+        .leftJoin('rental.room', 'room')
+        .leftJoin('room.property', 'property')
+        .andWhere('property.property_id = :property_id', { property_id });
+    }
+
+    const [kycs, total] = await queryBuilder.getManyAndCount();
 
     return {
       items: kycs,

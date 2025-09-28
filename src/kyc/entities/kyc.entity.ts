@@ -42,11 +42,14 @@ export class Kyc {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', default: null, nullable: true })
   tenant_id: string;
 
-  @Column({ default: null, nullable: true })
-  verifiedBy: number;
+  @Column({ type: 'varchar', default: null, nullable: true })
+  user_id: string;
+
+  @Column({ default: null, nullable: true, type: 'varchar' })
+  verifiedBy: string;
 
   @Column({ default: null, nullable: true })
   verifiedAt: Date;

@@ -13,6 +13,8 @@ import { Room } from '../properties/entities/room.entity';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { Property } from '../properties/entities/property.entity';
 import { v7 as uuidv7 } from 'uuid';
+import { RentalsService } from '../rentals/rentals.service';
+import { KycService } from '../kyc/kyc.service';
 
 @Injectable()
 export class TenantService {
@@ -23,6 +25,8 @@ export class TenantService {
     private readonly propertyRepository: Repository<Property>,
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
+    private readonly rentalservice: RentalsService,
+    private readonly kycservice: KycService,
   ) {}
 
   async create(
@@ -70,7 +74,31 @@ export class TenantService {
       });
     }
 
-    return this.tenantRepository.save(tenant);
+    const newTenant = await this.tenantRepository.save(tenant);
+
+    await this.kycservice.create(
+      {
+        tenant_id: newTenant.tenant_id,
+      },
+      user_id,
+    );
+
+    // Create a rental record for the tenant
+    await this.rentalservice.create(
+      {
+        tenant_id: newTenant.tenant_id,
+        room_id: newTenant.room_id,
+        property_id: newTenant.property_id,
+        startDate: createTenantDto.checkInDate,
+        rentAmount: room.rentAmount,
+        securityDeposit: room.securityAmount || 0,
+        rentDueDay: 1,
+        notes: `Rental created for tenant ${newTenant.name}`,
+      },
+      user_id,
+    );
+
+    return newTenant;
   }
 
   async findAll(

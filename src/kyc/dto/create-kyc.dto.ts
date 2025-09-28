@@ -6,17 +6,17 @@ import {
 } from 'class-validator';
 
 export class CreateKycDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  documentType: string;
+  documentType?: string;
 
   @IsNotEmpty()
   @IsString()
   tenant_id: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  documentNumber: string;
+  documentNumber?: string;
 
   @IsOptional()
   @IsString()

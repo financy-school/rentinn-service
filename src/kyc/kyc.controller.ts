@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  Request,
 } from '@nestjs/common';
 import { KycService } from './kyc.service';
 import { CreateKycDto } from './dto/create-kyc.dto';
@@ -18,6 +17,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('kyc')
 export class KycController {
@@ -26,15 +26,21 @@ export class KycController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  create(@Body() createKycDto: CreateKycDto) {
-    return this.kycService.create(createKycDto);
+  create(
+    @Body() createKycDto: CreateKycDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.create(createKycDto, user_id);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.LANDLORD)
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.kycService.findAll(paginationDto);
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.findAll(paginationDto, user_id);
   }
 
   @Get('tenant/:tenant_id')
@@ -42,22 +48,29 @@ export class KycController {
   findByTenant(
     @Param('tenant_id') tenant_id: string,
     @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.kycService.findByTenant(tenant_id, paginationDto);
+    return this.kycService.findByTenant(tenant_id, paginationDto, user_id);
   }
 
   @Get('pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.LANDLORD)
-  findPending(@Query() paginationDto: PaginationDto) {
-    return this.kycService.findPendingVerifications(paginationDto);
+  findPending(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.findPendingVerifications(paginationDto, user_id);
   }
 
   @Get(':kyc_id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  findOne(@Param('kyc_id') kyc_id: string) {
-    return this.kycService.findOne(kyc_id);
+  findOne(
+    @Param('kyc_id') kyc_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.findOne(kyc_id, user_id);
   }
 
   @Patch(':kyc_id')
@@ -66,11 +79,11 @@ export class KycController {
   update(
     @Param('kyc_id') kyc_id: string,
     @Body() updateKycDto: UpdateKycDto,
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
     return this.kycService.verify(
       kyc_id,
-      req.user.user_id,
+      user_id,
       updateKycDto.status,
       updateKycDto.verificationNotes,
     );
@@ -79,7 +92,10 @@ export class KycController {
   @Delete(':kyc_id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async remove(@Param('kyc_id') kyc_id: string) {
-    return this.kycService.remove(kyc_id);
+  async remove(
+    @Param('kyc_id') kyc_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.remove(kyc_id, user_id);
   }
 }
