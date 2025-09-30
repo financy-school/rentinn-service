@@ -46,30 +46,28 @@ export class Payment {
   recordedBy: string;
 
   @ManyToOne(() => Rental, (rental) => rental.payments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'rentalId' })
+  @JoinColumn({ name: 'rental_id' })
   rental: Rental;
 
   @Column({ type: 'varchar', length: 50 })
   rental_id: string;
 
-  // Relationship with Invoice
   @ManyToOne(() => Invoice, (invoice) => invoice.payments, {
     nullable: true,
     onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: 'invoiceId' })
+  @JoinColumn({ name: 'invoice_id' })
   invoice: Invoice;
 
-  @Column({ nullable: true, type: 'varchar', length: 70 })
+  @Column({ nullable: true, type: 'varchar', length: 200 })
   invoice_id: string;
 
-  // Relationship with Tenant (for direct tenant payments)
   @ManyToOne(() => Tenant, { nullable: true })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
   @Column({ nullable: true })
-  payment_tenant_id: string; // UUID for tenant
+  payment_tenant_id: string;
 
   @CreateDateColumn()
   createdAt: Date;

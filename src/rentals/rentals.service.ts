@@ -283,8 +283,16 @@ export class RentalsService {
     try {
       // Create the payment record
       const newPayment = this.paymentRepository.create({
-        ...recordPaymentDto,
-        rental_id,
+        payment_tenant_id: rental.tenant_id,
+        amount: recordPaymentDto.amount,
+        rental_id: rental.rental_id,
+        property_id: rental.property_id,
+        notes: recordPaymentDto.notes,
+        paymentMethod: recordPaymentDto.paymentMethod,
+        transactionId: recordPaymentDto.transactionId,
+        payment_id: `PAYMENT-${uuidv7()}`,
+        rental: rental,
+        invoice_id: recordPaymentDto.invoice_id || null,
         recordedBy: recordPaymentDto.recordedById,
         paymentDate: new Date(recordPaymentDto.paymentDate),
       });

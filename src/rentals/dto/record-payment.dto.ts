@@ -28,6 +28,10 @@ export class RecordPaymentDto {
 
   @IsOptional()
   @IsString()
+  invoice_id?: string;
+
+  @IsOptional()
+  @IsString()
   receiptUrl?: string;
 
   @IsOptional()
