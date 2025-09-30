@@ -26,7 +26,13 @@ export class Invoice {
   @Column({ primary: true, type: 'varchar', length: 70 })
   invoice_id: string;
 
-  @Column({ unique: true })
+  @Column({
+    unique: true,
+    type: 'varchar',
+    length: 100,
+    default: null,
+    nullable: true,
+  })
   invoice_number: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
@@ -41,10 +47,10 @@ export class Invoice {
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.DRAFT })
   status: InvoiceStatus;
 
-  @Column()
+  @Column({ nullable: true, default: null })
   due_date: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   issue_date: Date;
 
   @Column({ nullable: true, type: 'text' })
@@ -56,16 +62,16 @@ export class Invoice {
   @Column({ default: false })
   is_recurring: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   recurring_frequency: string; // 'MONTHLY', 'QUARTERLY', 'YEARLY'
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   next_recurring_date: Date;
 
   @Column({ default: false })
   send_reminder: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null })
   last_reminder_sent: Date;
 
   // Relationships
@@ -90,7 +96,7 @@ export class Invoice {
   user_id: string;
 
   @ManyToOne(() => Rental, (rental) => rental.invoices, { nullable: true })
-  @JoinColumn({ name: 'rentalId' })
+  @JoinColumn({ name: 'rental_id' })
   rental: Rental;
 
   @Column({ nullable: true, type: 'varchar', length: 50, default: null })
