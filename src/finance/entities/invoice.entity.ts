@@ -7,7 +7,6 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Rental } from '../../rentals/entities/rental.entity';
 import { InvoiceItem } from './invoice-item.entity';
@@ -87,10 +86,6 @@ export class Invoice {
 
   @Column({ type: 'varchar', length: 50, default: null, nullable: true })
   room_id: string;
-
-  @ManyToOne(() => User, (user) => user.invoicesAsLandlord)
-  @JoinColumn({ name: 'landlordId' })
-  landlord: User;
 
   @Column({ nullable: true, type: 'varchar', length: 150 })
   user_id: string;

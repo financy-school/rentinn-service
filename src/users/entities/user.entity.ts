@@ -63,7 +63,7 @@ export class User {
   @OneToMany(() => Property, (property) => property.owner)
   properties: Property[];
 
-  @OneToMany(() => Invoice, (invoice) => invoice.landlord)
+  @OneToMany(() => Invoice, (invoice) => invoice.user_id)
   invoicesAsLandlord: Invoice[];
 
   @OneToOne(() => UserSettings, (settings) => settings.user)
