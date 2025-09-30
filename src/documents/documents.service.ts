@@ -8,12 +8,10 @@ import { DocumentEntity } from './entities/document.entity';
 import { v7 as uuidv7 } from 'uuid';
 import { DOCUMENT_ID_PREFIX, ORG_DOC_EXPIRY } from '../config/config';
 import {
-  DATA_VALIDATION_ERROR,
   DOC_CREATE_FAILED,
   DOC_NOT_FOUND,
   INVALID_FILE_TYPE,
 } from '../core/custom-error/error-constant';
-import { validate } from 'class-validator';
 import { UploadDocumentDto } from './dto/upload-document-dto';
 import { DownloadDocumentDto } from './dto/download-document-dto';
 import { ConfigService } from '@nestjs/config';
@@ -51,19 +49,6 @@ export class DocumentsService {
   ) {
     this.org_docs_bucket_name = this.config.get('DOCS_BUCKET_NAME');
 
-    console.log('AWS Config Debug:', {
-      bucket: this.org_docs_bucket_name,
-      region: this.config.get(`AWS_DOCS_REGION`),
-      hasAccessKey: !!this.config.get(`AWS_DOCS_ACCESS_KEY`),
-      hasSecretKey: !!this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`),
-      accessKeyValue: this.config.get(`AWS_DOCS_ACCESS_KEY`)
-        ? 'SET'
-        : 'NOT_SET',
-      secretKeyValue: this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`)
-        ? 'SET'
-        : 'NOT_SET',
-    });
-
     if (
       this.config.get(`AWS_DOCS_ACCESS_KEY`) &&
       this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`)
@@ -78,11 +63,6 @@ export class DocumentsService {
       };
 
       AWS.config.credentials = new AWS.Credentials(aws_credentials);
-      console.log('AWS credentials configured from environment variables');
-    } else {
-      console.log(
-        'AWS credentials not found in environment variables, using default credentials (IAM roles)',
-      );
     }
 
     AWS.config.region = this.config.get(`AWS_DOCS_REGION`);
@@ -149,22 +129,10 @@ export class DocumentsService {
         Date.now() + (expire_in || ORG_DOC_EXPIRY) * 1000,
       );
 
-      const errors = await validate(new_document);
-      if (errors.length > 0) {
-        console.error('Validation errors:', errors);
-        throw customHttpError(
-          DATA_VALIDATION_ERROR,
-          'DOC_CREATE_ERROR',
-          `Input data validation failed: ${errors.map((err) => err.toString()).join(', ')}`,
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        await this.document_repository.save(new_document);
+      await this.document_repository.save(new_document);
 
-        return new_document;
-      }
+      return new_document;
     } catch (e) {
-      console.error('Document Creation Failed:', e);
       throw customHttpError(
         DOC_CREATE_FAILED,
         'DOC_CREATE_FAILED',
@@ -383,13 +351,6 @@ export class DocumentsService {
   async fetchS3UploadPath(uploadDocumentDto: UploadDocumentDto) {
     const { file_name, file_type, expire_in } = uploadDocumentDto;
 
-    console.log('Generating S3 upload URL for:', {
-      bucket: this.org_docs_bucket_name,
-      key: file_name,
-      contentType: file_type,
-      expires: expire_in || ORG_DOC_EXPIRY,
-    });
-
     try {
       const url = await this.s3_client.getSignedUrlPromise('putObject', {
         Bucket: this.org_docs_bucket_name,
@@ -398,17 +359,8 @@ export class DocumentsService {
         Expires: expire_in || ORG_DOC_EXPIRY, //time to expire in seconds
       });
 
-      console.log('S3 upload URL generated successfully');
       return url;
     } catch (error) {
-      console.error('S3 Upload URL Generation Failed:', {
-        error: error instanceof Error ? error.message : String(error),
-        code: (error as any)?.code,
-        statusCode: (error as any)?.statusCode,
-        bucket: this.org_docs_bucket_name,
-        region: this.config.get(`AWS_DOCS_REGION`),
-        key: file_name,
-      });
       throw error;
     }
   }
