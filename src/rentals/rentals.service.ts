@@ -76,6 +76,10 @@ export class RentalsService {
         endDate: createRentalDto.endDate
           ? new Date(createRentalDto.endDate)
           : null,
+        room: room,
+        tenant_id: createRentalDto.tenant_id,
+        property_id: createRentalDto.property_id,
+        isActive: true,
       });
 
       const savedRental = await queryRunner.manager.save(newRental);
