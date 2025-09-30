@@ -163,7 +163,7 @@ export class InvoiceService {
   async findInvoiceById(invoice_id: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findOne({
       where: { invoice_id },
-      relations: ['items', 'payments', 'tenant', 'landlord', 'rental'],
+      relations: ['items', 'payments', 'tenant', 'rental'],
     });
 
     if (!invoice) {
