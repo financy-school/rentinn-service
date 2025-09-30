@@ -50,6 +50,20 @@ export class DocumentsService {
     private readonly config: ConfigService,
   ) {
     this.org_docs_bucket_name = this.config.get('DOCS_BUCKET_NAME');
+
+    console.log('AWS Config Debug:', {
+      bucket: this.org_docs_bucket_name,
+      region: this.config.get(`AWS_DOCS_REGION`),
+      hasAccessKey: !!this.config.get(`AWS_DOCS_ACCESS_KEY`),
+      hasSecretKey: !!this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`),
+      accessKeyValue: this.config.get(`AWS_DOCS_ACCESS_KEY`)
+        ? 'SET'
+        : 'NOT_SET',
+      secretKeyValue: this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`)
+        ? 'SET'
+        : 'NOT_SET',
+    });
+
     if (
       this.config.get(`AWS_DOCS_ACCESS_KEY`) &&
       this.config.get(`AWS_DOCS_SECRET_ACCESS_KEY`)
@@ -64,6 +78,11 @@ export class DocumentsService {
       };
 
       AWS.config.credentials = new AWS.Credentials(aws_credentials);
+      console.log('AWS credentials configured from environment variables');
+    } else {
+      console.log(
+        'AWS credentials not found in environment variables, using default credentials (IAM roles)',
+      );
     }
 
     AWS.config.region = this.config.get(`AWS_DOCS_REGION`);
@@ -144,6 +163,7 @@ export class DocumentsService {
         return new_document;
       }
     } catch (e) {
+      console.error('Document Creation Failed:', e);
       throw customHttpError(
         DOC_CREATE_FAILED,
         'DOC_CREATE_FAILED',
@@ -362,14 +382,34 @@ export class DocumentsService {
   async fetchS3UploadPath(uploadDocumentDto: UploadDocumentDto) {
     const { file_name, file_type, expire_in } = uploadDocumentDto;
 
-    const url = await this.s3_client.getSignedUrlPromise('putObject', {
-      Bucket: this.org_docs_bucket_name,
-      ContentType: file_type,
-      Key: file_name,
-      Expires: expire_in || ORG_DOC_EXPIRY, //time to expire in seconds
+    console.log('Generating S3 upload URL for:', {
+      bucket: this.org_docs_bucket_name,
+      key: file_name,
+      contentType: file_type,
+      expires: expire_in || ORG_DOC_EXPIRY,
     });
 
-    return url;
+    try {
+      const url = await this.s3_client.getSignedUrlPromise('putObject', {
+        Bucket: this.org_docs_bucket_name,
+        ContentType: file_type,
+        Key: file_name,
+        Expires: expire_in || ORG_DOC_EXPIRY, //time to expire in seconds
+      });
+
+      console.log('S3 upload URL generated successfully');
+      return url;
+    } catch (error) {
+      console.error('S3 Upload URL Generation Failed:', {
+        error: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code,
+        statusCode: (error as any)?.statusCode,
+        bucket: this.org_docs_bucket_name,
+        region: this.config.get(`AWS_DOCS_REGION`),
+        key: file_name,
+      });
+      throw error;
+    }
   }
 
   async fetchS3DownloadPath(downloadDocumentDto: DownloadDocumentDto) {
