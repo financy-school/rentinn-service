@@ -42,7 +42,7 @@ export class InvoiceService {
    */
   async createInvoice(
     createInvoiceDto: CreateInvoiceDto,
-    userId: number,
+    userId: string,
   ): Promise<Invoice> {
     // Validate tenant exists
     const tenant = await this.tenantRepository.findOne({
@@ -76,12 +76,12 @@ export class InvoiceService {
 
     // Create invoice
     const invoice = this.invoiceRepository.create({
-      ...createInvoiceDto,
-      landlordId: createInvoiceDto.landlordId || userId,
-      totalAmount,
-      outstandingAmount: totalAmount,
-      invoiceNumber: this.generateInvoiceNumber(),
-      issueDate: createInvoiceDto.issueDate || new Date(),
+      user_id: createInvoiceDto.landlordId || userId,
+      invoice_id: `INV-${uuidv7()}`,
+      total_amount: totalAmount,
+      outstanding_amount: totalAmount,
+      invoice_number: this.generateInvoiceNumber(),
+      issue_date: createInvoiceDto.issueDate || new Date(),
       status: createInvoiceDto.status || InvoiceStatus.DRAFT,
     });
 
@@ -106,7 +106,7 @@ export class InvoiceService {
    */
   async findAllInvoices(
     paginationDto: PaginationDto,
-    userId?: number,
+    userId?: string,
     userRole?: UserRole,
   ): Promise<PaginationResponse<Invoice>> {
     const page = paginationDto.getSafePage();
@@ -117,7 +117,7 @@ export class InvoiceService {
 
     // Filter based on user role
     if (userRole === UserRole.LANDLORD && userId) {
-      where.landlordId = userId;
+      where.user_id = userId;
     }
     // Note: For tenant filtering, we'll need a different approach since tenantId is UUID
 
@@ -162,13 +162,13 @@ export class InvoiceService {
   async updateInvoice(
     invoice_id: string,
     updateInvoiceDto: UpdateInvoiceDto,
-    userId: number,
+    userId: string,
     userRole: UserRole,
   ): Promise<Invoice> {
     const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
-    if (userRole !== UserRole.ADMIN && invoice.landlordId !== userId) {
+    if (userRole !== UserRole.ADMIN && invoice.user_id !== userId) {
       throw new ForbiddenException(
         'You do not have permission to update this invoice',
       );
@@ -186,7 +186,7 @@ export class InvoiceService {
         0,
       );
       updateInvoiceDto.totalAmount = totalAmount;
-      updateInvoiceDto.outstandingAmount = totalAmount - invoice.paidAmount;
+      updateInvoiceDto.outstandingAmount = totalAmount - invoice.paid_amount;
 
       // Update items
       await this.invoiceItemRepository.delete({ invoice_id: invoice_id });
@@ -210,13 +210,13 @@ export class InvoiceService {
    */
   async deleteInvoice(
     invoice_id: string,
-    userId: number,
+    userId: string,
     userRole: UserRole,
   ): Promise<void> {
     const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
-    if (userRole !== UserRole.ADMIN && invoice.landlordId !== userId) {
+    if (userRole !== UserRole.ADMIN && invoice.user_id !== userId) {
       throw new ForbiddenException(
         'You do not have permission to delete this invoice',
       );
@@ -242,7 +242,7 @@ export class InvoiceService {
     const invoice = await this.findInvoiceById(recordPaymentDto.invoice_id);
 
     // Validate payment amount
-    if (recordPaymentDto.amount > invoice.outstandingAmount) {
+    if (recordPaymentDto.amount > invoice.outstanding_amount) {
       throw new BadRequestException(
         'Payment amount cannot exceed outstanding amount',
       );
@@ -255,7 +255,7 @@ export class InvoiceService {
       rental_id: invoice.rental_id,
       invoice_id: invoice.invoice_id,
       recordedBy: userId,
-      isLatePayment: new Date() > new Date(invoice.dueDate),
+      isLatePayment: new Date() > new Date(invoice.due_date),
     });
 
     const savedPayment = await this.paymentRepository.save(payment);
@@ -269,11 +269,11 @@ export class InvoiceService {
   /**
    * Get invoice statistics for dashboard
    */
-  async getInvoiceStatistics(userId: number, userRole: UserRole): Promise<any> {
+  async getInvoiceStatistics(userId: string, userRole: UserRole): Promise<any> {
     const where: FindOptionsWhere<Invoice> = {};
 
     if (userRole === UserRole.LANDLORD) {
-      where.landlordId = userId;
+      where.user_id = userId;
     }
     // Note: Tenant filtering would need tenantId mapping from User to Tenant
 
@@ -316,11 +316,11 @@ export class InvoiceService {
   /**
    * Send invoice reminder
    */
-  async sendInvoiceReminder(invoice_id: string, userId: number): Promise<void> {
+  async sendInvoiceReminder(invoice_id: string, userId: string): Promise<void> {
     const invoice = await this.findInvoiceById(invoice_id);
 
     // Check permissions
-    if (invoice.landlordId !== userId) {
+    if (invoice.user_id !== userId) {
       throw new ForbiddenException(
         'You do not have permission to send reminder for this invoice',
       );
@@ -328,7 +328,7 @@ export class InvoiceService {
 
     // TODO: Implement email/notification service
     // For now, just update the lastReminderSent date
-    invoice.lastReminderSent = new Date();
+    invoice.last_reminder_sent = new Date();
     await this.invoiceRepository.save(invoice);
   }
 
@@ -386,15 +386,15 @@ export class InvoiceService {
         0,
       ) || 0;
 
-    invoice.paidAmount = totalPaid;
-    invoice.outstandingAmount = invoice.totalAmount - totalPaid;
+    invoice.paid_amount = totalPaid;
+    invoice.outstanding_amount = invoice.total_amount - totalPaid;
 
     // Update status
-    if (totalPaid >= invoice.totalAmount) {
+    if (totalPaid >= invoice.total_amount) {
       invoice.status = InvoiceStatus.PAID;
     } else if (totalPaid > 0) {
       invoice.status = InvoiceStatus.PARTIALLY_PAID;
-    } else if (new Date() > new Date(invoice.dueDate)) {
+    } else if (new Date() > new Date(invoice.due_date)) {
       invoice.status = InvoiceStatus.OVERDUE;
     }
 
@@ -431,19 +431,19 @@ export class InvoiceService {
     let totalPendingAmount = 0;
 
     previousInvoices.forEach((invoice) => {
-      const invoiceOutstanding = invoice.totalAmount - invoice.paidAmount;
+      const invoiceOutstanding = invoice.total_amount - invoice.paid_amount;
 
       if (invoiceOutstanding > 0) {
         invoice.items.forEach((item) => {
           // Calculate what portion of this item is still unpaid
-          const itemPaidRatio = invoice.paidAmount / invoice.totalAmount;
+          const itemPaidRatio = invoice.paid_amount / invoice.total_amount;
           const itemPendingAmount = item.amount * (1 - itemPaidRatio);
 
           if (itemPendingAmount > 0) {
             pendingItems.push({
               originalInvoiceId: invoice.invoice_id,
-              originalInvoiceNumber: invoice.invoiceNumber,
-              originalDueDate: invoice.dueDate,
+              originalInvoiceNumber: invoice.invoice_number,
+              originalDueDate: invoice.due_date,
               itemId: item.item_id,
               category: item.category,
               description: item.description,
@@ -454,7 +454,7 @@ export class InvoiceService {
               dueDate: item.dueDate,
               isFixed: item.isFixed,
               daysSinceOriginalDue: Math.floor(
-                (new Date().getTime() - new Date(invoice.dueDate).getTime()) /
+                (new Date().getTime() - new Date(invoice.due_date).getTime()) /
                   (1000 * 60 * 60 * 24),
               ),
             });

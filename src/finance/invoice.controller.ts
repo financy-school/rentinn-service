@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  Request,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -19,6 +18,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 import { PaginationDto } from '../common/dto/pagination.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('invoices')
 @UseGuards(JwtAuthGuard)
@@ -29,30 +29,36 @@ export class InvoiceController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   createInvoice(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() createInvoiceDto: CreateInvoiceDto,
   ) {
-    return this.invoiceService.createInvoice(
-      createInvoiceDto,
-      req.user.user_id,
-    );
+    return this.invoiceService.createInvoice(createInvoiceDto, user_id);
   }
 
   @Get()
-  findAllInvoices(@Query() paginationDto: PaginationDto, @Request() req: any) {
-    return this.invoiceService.findAllInvoices(
-      paginationDto,
-      req.user.user_id,
-      req.user.role,
-    );
+  findAllInvoices(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') role: UserRole,
+  ) {
+    return this.invoiceService.findAllInvoices(paginationDto, user_id, role);
+  }
+
+  @Get('all')
+  findAllInvoicesAdmin(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') role: UserRole,
+  ) {
+    return this.invoiceService.findAllInvoices(paginationDto, user_id, role);
   }
 
   @Get('statistics')
-  getInvoiceStatistics(@Request() req: any) {
-    return this.invoiceService.getInvoiceStatistics(
-      req.user.user_id,
-      req.user.role,
-    );
+  getInvoiceStatistics(
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') role: UserRole,
+  ) {
+    return this.invoiceService.getInvoiceStatistics(user_id, role);
   }
 
   @Get(':invoice_id')
@@ -68,25 +74,26 @@ export class InvoiceController {
   updateInvoice(
     @Param('invoice_id') invoice_id: string,
     @Body() updateInvoiceDto: UpdateInvoiceDto,
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') role: UserRole,
   ) {
     return this.invoiceService.updateInvoice(
       invoice_id,
       updateInvoiceDto,
-      req.user.user_id,
-      req.user.role,
+      user_id,
+      role,
     );
   }
 
   @Delete(':invoice_id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  deleteInvoice(@Param('invoice_id') invoice_id: string, @Request() req: any) {
-    return this.invoiceService.deleteInvoice(
-      invoice_id,
-      req.user.user_id,
-      req.user.role,
-    );
+  deleteInvoice(
+    @Param('invoice_id') invoice_id: string,
+    @CurrentUser('user_id') user_id: string,
+    @CurrentUser('role') role: UserRole,
+  ) {
+    return this.invoiceService.deleteInvoice(invoice_id, user_id, role);
   }
 
   @Post('payments')
@@ -94,12 +101,9 @@ export class InvoiceController {
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   recordPayment(
     @Body() recordPaymentDto: RecordPaymentDto,
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.invoiceService.recordPayment(
-      recordPaymentDto,
-      req.user.user_id,
-    );
+    return this.invoiceService.recordPayment(recordPaymentDto, user_id);
   }
 
   @Get('tenants')
@@ -124,11 +128,8 @@ export class InvoiceController {
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   sendInvoiceReminder(
     @Param('invoice_id') invoice_id: string,
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return this.invoiceService.sendInvoiceReminder(
-      invoice_id,
-      req.user.user_id,
-    );
+    return this.invoiceService.sendInvoiceReminder(invoice_id, user_id);
   }
 }

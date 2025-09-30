@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
-  IsNumber,
   IsEnum,
   IsString,
   IsOptional,
@@ -19,8 +18,8 @@ export class CreateInvoiceDto {
   tenant_id: string; // Changed to string for UUID
 
   @IsOptional()
-  @IsNumber()
-  landlordId?: number;
+  @IsString()
+  landlordId?: string;
 
   @IsOptional()
   @IsString()

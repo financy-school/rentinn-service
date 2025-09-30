@@ -27,25 +27,25 @@ export class Invoice {
   invoice_id: string;
 
   @Column({ unique: true })
-  invoiceNumber: string;
+  invoice_number: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  totalAmount: number;
+  total_amount: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  paidAmount: number;
+  paid_amount: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  outstandingAmount: number;
+  outstanding_amount: number;
 
   @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.DRAFT })
   status: InvoiceStatus;
 
   @Column()
-  dueDate: Date;
+  due_date: Date;
 
   @Column({ nullable: true })
-  issueDate: Date;
+  issue_date: Date;
 
   @Column({ nullable: true, type: 'text' })
   description: string;
@@ -54,19 +54,19 @@ export class Invoice {
   notes: string;
 
   @Column({ default: false })
-  isRecurring: boolean;
+  is_recurring: boolean;
 
   @Column({ nullable: true })
-  recurringFrequency: string; // 'MONTHLY', 'QUARTERLY', 'YEARLY'
+  recurring_frequency: string; // 'MONTHLY', 'QUARTERLY', 'YEARLY'
 
   @Column({ nullable: true })
-  nextRecurringDate: Date;
+  next_recurring_date: Date;
 
   @Column({ default: false })
-  sendReminder: boolean;
+  send_reminder: boolean;
 
   @Column({ nullable: true })
-  lastReminderSent: Date;
+  last_reminder_sent: Date;
 
   // Relationships
   @ManyToOne(() => Tenant, { eager: true })
@@ -86,8 +86,8 @@ export class Invoice {
   @JoinColumn({ name: 'landlordId' })
   landlord: User;
 
-  @Column()
-  landlordId: number;
+  @Column({ nullable: true, type: 'varchar', length: 150 })
+  user_id: string;
 
   @ManyToOne(() => Rental, (rental) => rental.invoices, { nullable: true })
   @JoinColumn({ name: 'rentalId' })
@@ -110,31 +110,23 @@ export class Invoice {
 
   // Methods
   calculateOutstandingAmount(): number {
-    return this.totalAmount - this.paidAmount;
+    return this.total_amount - this.paid_amount;
   }
 
   isOverdue(): boolean {
     return (
-      new Date() > new Date(this.dueDate) && this.status !== InvoiceStatus.PAID
+      new Date() > new Date(this.due_date) && this.status !== InvoiceStatus.PAID
     );
   }
 
   updateStatus(): void {
-    if (this.paidAmount >= this.totalAmount) {
+    if (this.paid_amount >= this.total_amount) {
       this.status = InvoiceStatus.PAID;
-    } else if (this.paidAmount > 0) {
+    } else if (this.paid_amount > 0) {
       this.status = InvoiceStatus.PARTIALLY_PAID;
     } else if (this.isOverdue()) {
       this.status = InvoiceStatus.OVERDUE;
     }
-    this.outstandingAmount = this.calculateOutstandingAmount();
-  }
-
-  generateInvoiceNumber(): string {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const timestamp = Date.now().toString().slice(-6);
-    return `INV-${year}${month}-${timestamp}`;
+    this.outstanding_amount = this.calculateOutstandingAmount();
   }
 }
