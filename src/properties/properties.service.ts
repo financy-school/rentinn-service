@@ -170,6 +170,7 @@ export class PropertiesService {
     new_room.property = property;
     new_room.description = createRoomDto.description;
     new_room.status = 'VACANT';
+    new_room.user_id = user_id;
 
     const newRoom = this.roomRepository.create(new_room);
 
