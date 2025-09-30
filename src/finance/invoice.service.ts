@@ -99,9 +99,17 @@ export class InvoiceService {
     // Create invoice items
     const items = createInvoiceDto.items.map((itemDto) =>
       this.invoiceItemRepository.create({
-        ...itemDto,
         invoice_id: savedInvoice.invoice_id,
         quantity: itemDto.quantity || 1,
+        item_id: `INVITEM-${uuidv7()}`,
+        category: itemDto.category,
+        description: itemDto.description,
+        amount: itemDto.amount,
+        existingDues: itemDto.existingDues || 0,
+        existingDueDate: itemDto.existingDueDate || null,
+        dueDate: itemDto.dueDate || null,
+        metadata: itemDto.metadata || {},
+        fixedAmount: itemDto.fixedAmount || null,
       }),
     );
 
