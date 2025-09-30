@@ -83,6 +83,15 @@ export class InvoiceService {
       invoice_number: this.generateInvoiceNumber(),
       issue_date: createInvoiceDto.issueDate || new Date(),
       status: createInvoiceDto.status || InvoiceStatus.DRAFT,
+      due_date: createInvoiceDto.dueDate,
+      description: createInvoiceDto.description,
+      notes: createInvoiceDto.notes,
+      is_recurring: createInvoiceDto.isRecurring || false,
+      recurring_frequency: createInvoiceDto.recurringFrequency,
+      next_recurring_date: createInvoiceDto.nextRecurringDate,
+      send_reminder: createInvoiceDto.sendReminder || false,
+      tenant_id: createInvoiceDto.tenant_id,
+      rental_id: createInvoiceDto.rental_id,
     });
 
     const savedInvoice = await this.invoiceRepository.save(invoice);
