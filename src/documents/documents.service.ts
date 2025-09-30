@@ -151,10 +151,11 @@ export class DocumentsService {
 
       const errors = await validate(new_document);
       if (errors.length > 0) {
+        console.error('Validation errors:', errors);
         throw customHttpError(
           DATA_VALIDATION_ERROR,
           'DOC_CREATE_ERROR',
-          `Input data validation failed`,
+          `Input data validation failed: ${errors.map((err) => err.toString()).join(', ')}`,
           HttpStatus.BAD_REQUEST,
         );
       } else {
