@@ -537,6 +537,7 @@ export class AnalyticsService {
     // Get real KYC stats
     const kycQuery = this.kycRepository
       .createQueryBuilder('kyc')
+      .leftJoinAndSelect('kyc.tenant', 'tenant')
       .where('kyc.user_id = :landlordId', { landlordId });
 
     const allKyc = await kycQuery.getMany();
