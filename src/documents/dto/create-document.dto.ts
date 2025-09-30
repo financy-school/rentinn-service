@@ -4,17 +4,19 @@ import {
   IsOptional,
   IsDate,
   IsObject,
-  IsUrl,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateDocumentDto {
+  @IsOptional()
   @IsString()
   file_name: string;
 
+  @IsOptional()
   @IsString()
   file_type: string;
 
+  @IsOptional()
   @IsString()
   descriptor: string;
 
@@ -22,6 +24,7 @@ export class CreateDocumentDto {
   @IsObject()
   metadata?: Record<string, any>;
 
+  @IsOptional()
   @IsBoolean()
   is_signature_required: boolean;
 
@@ -34,10 +37,11 @@ export class CreateDocumentDto {
   @IsDate()
   signed_at?: Date;
 
+  @IsOptional()
   @IsString()
   doc_type: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   download_url?: string;
 }

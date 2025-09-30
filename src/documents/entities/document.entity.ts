@@ -21,50 +21,50 @@ export class DocumentEntity {
   @Column({ type: 'varchar', length: 64 })
   property_id: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, default: null })
   file_name: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, default: null })
   file_type: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
   descriptor: string;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', nullable: true, default: null })
   is_signature_required: boolean;
 
-  @Column({ type: 'boolean', nullable: true })
-  is_signed?: boolean;
+  @Column({ type: 'boolean', nullable: true, default: null })
+  is_signed: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
-  signed_at?: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  signed_at: Date;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
   doc_type: string;
 
-  @Column({ type: 'varchar', length: 512, nullable: true })
-  download_url?: string;
+  @Column({ type: 'varchar', length: 512, nullable: true, default: null })
+  download_url: string;
 
-  @Column({ type: 'varchar', length: 512, nullable: true })
-  document_path?: string;
+  @Column({ type: 'varchar', length: 512, nullable: true, default: null })
+  document_path: string;
 
-  @Column({ type: 'varchar', length: 512, nullable: true })
-  upload_url?: string;
+  @Column({ type: 'varchar', length: 512, nullable: true, default: null })
+  upload_url: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  upload_url_expire_at?: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  upload_url_expire_at: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  download_url_expire_at?: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  download_url_expire_at: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  created_at?: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  created_at: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  updated_at?: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  updated_at: Date;
 
-  @Column({ type: 'json', nullable: true })
-  metadata?: Record<string, any>;
+  @Column({ type: 'json', nullable: true, default: null })
+  metadata: Record<string, any>;
 
   @Column({ type: 'boolean', default: false })
   is_deleted: boolean;
@@ -73,5 +73,5 @@ export class DocumentEntity {
     type: 'timestamp',
     nullable: true,
   })
-  deleted_at?: Date;
+  deleted_at: Date;
 }
