@@ -283,11 +283,24 @@ export class DocumentsService {
   }
 
   async findOne(property_id: string, document_id: string, expire_in?: number) {
+    const where = {
+      document_id,
+      is_deleted: false,
+      property_id,
+    };
+
+    if (
+      property_id === null ||
+      property_id === undefined ||
+      property_id === 'all'
+    ) {
+      delete where['property_id'];
+    } else {
+      where['property_id'] = property_id;
+    }
     const organizationDocument = await this.document_repository.findOne({
       where: {
-        property_id,
-        document_id,
-        is_deleted: false,
+        ...where,
       },
     });
 
