@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Property } from './property.entity';
 import { Rental } from '../../rentals/entities/rental.entity';
+import { Ticket } from '../../tickets/entities/ticket.entity';
 
 @Entity('rooms')
 export class Room {
@@ -71,6 +72,9 @@ export class Room {
 
   @OneToMany(() => Rental, (rental) => rental.room)
   rentals: Rental[];
+
+  @OneToMany(() => Ticket, (ticket) => ticket.room)
+  tickets: Ticket[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -4,7 +4,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Room } from '../../properties/entities/room.entity';
 
 @Entity()
 export class Ticket {
@@ -40,4 +43,8 @@ export class Ticket {
 
   @Column('simple-array', { nullable: true, default: null })
   image_document_id_list: string[];
+
+  @ManyToOne(() => Room, (room) => room.tickets)
+  @JoinColumn({ name: 'room_id' })
+  room: Room;
 }

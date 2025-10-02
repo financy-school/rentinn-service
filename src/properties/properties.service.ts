@@ -228,7 +228,7 @@ export class PropertiesService {
   ): Promise<Room> {
     const room = await this.roomRepository.findOne({
       where: { room_id, property_id, user_id },
-      relations: ['property', 'rentals'],
+      relations: ['property', 'rentals', 'tickets'],
     });
 
     if (!room) {
