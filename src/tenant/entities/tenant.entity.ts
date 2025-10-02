@@ -10,6 +10,7 @@ import { Room } from '../../properties/entities/room.entity';
 import { Kyc } from '../../kyc/entities/kyc.entity';
 import { Rental } from '../../rentals/entities/rental.entity';
 import { Invoice } from '../../entities';
+import { Payment } from '../../rentals/entities/payment.entity';
 
 @Entity('tenant')
 export class Tenant {
@@ -113,4 +114,7 @@ export class Tenant {
 
   @OneToMany(() => Invoice, (invoice) => invoice.tenant)
   invoices: Invoice[];
+
+  @OneToMany(() => Payment, (payment) => payment.tenant)
+  payments: Payment[];
 }

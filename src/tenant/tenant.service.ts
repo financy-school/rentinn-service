@@ -203,7 +203,7 @@ export class TenantService {
   async findOne(tenant_id: string, user_id: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({
       where: { tenant_id, user_id },
-      relations: ['room', 'kycDocuments', 'rentals', 'invoices'],
+      relations: ['room', 'kycDocuments', 'rentals', 'invoices', 'payments'],
     });
 
     if (!tenant) throw new NotFoundException('Tenant not found');
