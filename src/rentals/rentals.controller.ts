@@ -119,4 +119,14 @@ export class RentalsController {
   ) {
     return this.rentalsService.remove(property_id, room_id, user_id);
   }
+
+  @Get('payments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  findPayments(
+    @Query() paginationDto: PaginationDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.rentalsService.findPayments(paginationDto, user_id);
+  }
 }

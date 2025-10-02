@@ -435,4 +435,47 @@ export class RentalsService {
 
     return !!rental;
   }
+
+  /**
+   * Find all payments with pagination and property filtering
+   */
+  async findPayments(
+    paginationDto: PaginationDto,
+    user_id: string,
+  ): Promise<PaginationResponse<Payment>> {
+    const { property_id, page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoin('payment.rental', 'rental')
+      .leftJoin('rental.room', 'room')
+      .leftJoin('room.property', 'property')
+      .where('property.owner_id = :user_id', { user_id });
+
+    // Only filter by property_id if it's provided and not 'all'
+    if (property_id && property_id !== 'all') {
+      queryBuilder.andWhere('payment.property_id = :property_id', {
+        property_id,
+      });
+    }
+
+    const [payments, total] = await queryBuilder
+      .leftJoinAndSelect('payment.rental', 'rental_select')
+      .leftJoinAndSelect('rental_select.tenant', 'tenant')
+      .skip(skip)
+      .take(limit)
+      .orderBy('payment.createdAt', 'DESC')
+      .getManyAndCount();
+
+    return {
+      items: payments,
+      meta: {
+        totalItems: total,
+        itemsPerPage: limit,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+      },
+    };
+  }
 }
