@@ -629,18 +629,27 @@ export class AnalyticsService {
       (room) => room.rentals && room.rentals.length > 0,
     ).length;
 
-    const roomsData = rooms.map((room) => {
-      const hasActiveRental = room.rentals && room.rentals.length > 0;
-      const tenant = hasActiveRental ? room.rentals[0].tenant : null;
+    const roomsData = await Promise.all(
+      rooms.map(async (room) => {
+        const openTickets = await this.ticketRepository.count({
+          where: {
+            room_id: room.room_id,
+            status: 'PENDING',
+          },
+        });
 
-      return {
-        room_number: room.room_id,
-        status: hasActiveRental ? 'occupied' : 'vacant',
-        tenant_name: tenant ? tenant.name : undefined,
-        has_issues: false, // Would need to check against issues table
-        floor: Math.floor(room.floorNumber),
-      };
-    });
+        return {
+          room_number: room.room_id,
+          status:
+            room.available_count && room.available_count === 0
+              ? 'occupied'
+              : 'vacant',
+          has_issues: openTickets > 0,
+          floor: Math.floor(room.floorNumber || 0),
+          property_id: room.property_id,
+        };
+      }),
+    );
 
     return {
       total_rooms: rooms.length,
