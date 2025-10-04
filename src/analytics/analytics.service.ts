@@ -626,7 +626,8 @@ export class AnalyticsService {
     const rooms = await roomsQuery.getMany();
 
     const occupiedRooms = rooms.filter(
-      (room) => room.rentals && room.rentals.length > 0,
+      (room) =>
+        room.rentals && room.rentals.length >= (room.available_count || 1),
     ).length;
 
     const roomsData = await Promise.all(
@@ -641,7 +642,7 @@ export class AnalyticsService {
         return {
           room_number: room.room_id,
           status:
-            room.available_count && room.available_count === 0
+            room.rentals && room.rentals.length >= (room.available_count || 1)
               ? 'occupied'
               : 'vacant',
           has_issues: openTickets > 0,
@@ -682,7 +683,9 @@ export class AnalyticsService {
       .innerJoin('room.property', 'property')
       .innerJoin('room.rentals', 'rental')
       .where('property.owner_id = :landlordId', { landlordId })
-      .andWhere('rental.isActive = :isActive', { isActive: true });
+      .andWhere('rental.isActive = :isActive', { isActive: true })
+      .groupBy('room.room_id')
+      .having('COUNT(rental.rental_id) >= room.available_count');
 
     if (property_id && property_id !== 'all') {
       occupiedQuery.andWhere('property.property_id = :property_id', {
