@@ -678,22 +678,28 @@ export class AnalyticsService {
 
     const totalRooms = await roomsQuery.getCount();
 
-    const occupiedQuery = this.roomRepository
+    const roomsWithRentalsQuery = this.roomRepository
       .createQueryBuilder('room')
+      .leftJoinAndSelect(
+        'room.rentals',
+        'rental',
+        'rental.isActive = :isActive',
+        { isActive: true },
+      )
       .innerJoin('room.property', 'property')
-      .innerJoin('room.rentals', 'rental')
-      .where('property.owner_id = :landlordId', { landlordId })
-      .andWhere('rental.isActive = :isActive', { isActive: true })
-      .groupBy('room.room_id')
-      .having('COUNT(rental.rental_id) >= room.available_count');
+      .where('property.owner_id = :landlordId', { landlordId });
 
     if (property_id && property_id !== 'all') {
-      occupiedQuery.andWhere('property.property_id = :property_id', {
+      roomsWithRentalsQuery.andWhere('property.property_id = :property_id', {
         property_id,
       });
     }
 
-    const occupiedRooms = await occupiedQuery.getCount();
+    const roomsWithRentals = await roomsWithRentalsQuery.getMany();
+    const occupiedRooms = roomsWithRentals.filter(
+      (room) =>
+        room.rentals && room.rentals.length >= (room.available_count || 1),
+    ).length;
     const vacantRooms = totalRooms - occupiedRooms;
     const occupancyRate =
       totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0;
