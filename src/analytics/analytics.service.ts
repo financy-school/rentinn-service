@@ -76,7 +76,7 @@ export class AnalyticsService {
         total_units: occupancyStats.totalRooms,
         occupied_units: occupancyStats.occupiedRooms,
         vacant_units: occupancyStats.vacantRooms,
-        tenant_count: occupancyStats.occupiedRooms, // Assuming one tenant per room
+        tenant_count: occupancyStats.totalTenants,
       },
       rent_collection: rentCollectionStats,
       revenue_trends: revenueTrendsData,
@@ -105,7 +105,7 @@ export class AnalyticsService {
       total_units: occupancyStats.totalRooms,
       occupied_units: occupancyStats.occupiedRooms,
       vacant_units: occupancyStats.vacantRooms,
-      tenant_count: occupancyStats.occupiedRooms,
+      tenant_count: occupancyStats.totalTenants,
     };
   }
 
@@ -695,11 +695,27 @@ export class AnalyticsService {
     const occupancyRate =
       totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0;
 
+    const tenantCountQuery = this.rentalRepository
+      .createQueryBuilder('rental')
+      .innerJoin('rental.room', 'room')
+      .innerJoin('room.property', 'property')
+      .where('property.owner_id = :landlordId', { landlordId })
+      .andWhere('rental.isActive = :isActive', { isActive: true });
+
+    if (property_id && property_id !== 'all') {
+      tenantCountQuery.andWhere('property.property_id = :property_id', {
+        property_id,
+      });
+    }
+
+    const totalTenants = await tenantCountQuery.getCount();
+
     return {
       totalRooms,
       occupiedRooms,
       vacantRooms,
       occupancyRate,
+      totalTenants,
     };
   }
 
