@@ -151,6 +151,45 @@ export class UsersService {
   }
 
   /**
+   * Update user's Firebase token for push notifications
+   */
+  async updateFirebaseToken(
+    user_id: string,
+    firebaseToken: string,
+  ): Promise<User> {
+    const user = await this.findOne(user_id);
+
+    user.firebaseToken = firebaseToken;
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * Remove user's Firebase token
+   */
+  async removeFirebaseToken(user_id: string): Promise<User> {
+    const user = await this.findOne(user_id);
+
+    user.firebaseToken = null;
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * Get users with Firebase tokens for sending notifications
+   */
+  async getUsersWithFirebaseTokens(userIds?: string[]): Promise<User[]> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.firebaseToken IS NOT NULL')
+      .andWhere('user.isActive = :isActive', { isActive: true });
+
+    if (userIds && userIds.length > 0) {
+      queryBuilder.andWhere('user.user_id IN (:...userIds)', { userIds });
+    }
+
+    return queryBuilder.getMany();
+  }
+
+  /**
    * Delete a user
    */
   async remove(user_id: string): Promise<void> {

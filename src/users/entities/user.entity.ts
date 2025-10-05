@@ -49,7 +49,7 @@ export class User {
   postalCode: string;
 
   @Column({ nullable: true })
-  country: string;
+  firebaseToken: string;
 
   @Column({ default: true })
   isActive: boolean;

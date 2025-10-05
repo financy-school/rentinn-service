@@ -58,4 +58,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  @IsOptional()
+  @IsString()
+  firebaseToken?: string;
 }
