@@ -7,7 +7,7 @@ import { Payment } from '../rentals/entities/payment.entity';
 import { Property } from '../properties/entities/property.entity';
 import { Room } from '../properties/entities/room.entity';
 import { User } from '../users/entities/user.entity';
-import { Kyc, Tenant, Ticket } from '../entities';
+import { Invoice, Kyc, Tenant, Ticket } from '../entities';
 
 @Module({
   imports: [
@@ -20,6 +20,7 @@ import { Kyc, Tenant, Ticket } from '../entities';
       Tenant,
       Ticket,
       Kyc,
+      Invoice,
     ]),
   ],
   controllers: [AnalyticsController],
