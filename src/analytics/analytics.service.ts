@@ -7,13 +7,14 @@ import { Property } from '../properties/entities/property.entity';
 import { Room } from '../properties/entities/room.entity';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { Kyc } from '../kyc/entities/kyc.entity';
+import { Invoice, InvoiceStatus } from '../finance/entities/invoice.entity';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycStatus } from '../common/enums/kyc-status.enum';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import {
   DashboardAnalyticsQueryDto,
   DateRangeEnum,
 } from './dto/analytics-query.dto';
-import { Tenant } from '../entities';
 
 @Injectable()
 export class AnalyticsService {
@@ -32,6 +33,8 @@ export class AnalyticsService {
     private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Kyc)
     private readonly kycRepository: Repository<Kyc>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepository: Repository<Invoice>,
   ) {}
 
   /**
@@ -777,14 +780,17 @@ export class AnalyticsService {
 
     const actualIncome = Number(paymentsResult?.totalPayments || 0);
 
-    const overdueQuery = this.rentalRepository
-      .createQueryBuilder('rental')
+    const overdueQuery = this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .innerJoin('invoice.rental', 'rental')
       .innerJoin('rental.room', 'room')
       .innerJoin('room.property', 'property')
       .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })
-      .andWhere('rental.outstandingAmount > 0')
-      .andWhere('DAY(CURDATE()) > rental.rentDueDay');
+      .andWhere(
+        '(invoice.status = :overdueStatus OR (invoice.due_date < CURDATE() AND invoice.outstanding_amount > 0))',
+        { overdueStatus: InvoiceStatus.OVERDUE },
+      );
 
     if (property_id && property_id !== 'all') {
       overdueQuery.andWhere('property.property_id = :property_id', {
@@ -793,7 +799,7 @@ export class AnalyticsService {
     }
 
     const overdueResult = await overdueQuery
-      .select('SUM(rental.outstandingAmount)', 'totalOutstanding')
+      .select('SUM(invoice.outstanding_amount)', 'totalOutstanding')
       .getRawOne();
 
     const overdueIncome = Number(overdueResult?.totalOutstanding || 0);
