@@ -783,9 +783,8 @@ export class AnalyticsService {
       .innerJoin('room.property', 'property')
       .where('property.owner_id = :landlordId', { landlordId })
       .andWhere('rental.isActive = :isActive', { isActive: true })
-      .andWhere('rental.paymentStatus != :paidStatus', {
-        paidStatus: PaymentStatus.PAID,
-      });
+      .andWhere('rental.outstandingAmount > 0')
+      .andWhere('DAY(CURDATE()) > rental.rentDueDay');
 
     if (property_id && property_id !== 'all') {
       overdueQuery.andWhere('property.property_id = :property_id', {
