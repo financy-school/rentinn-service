@@ -42,14 +42,26 @@ export class NotificationService {
    */
   private initializeEmailTransporter(): void {
     try {
+      const smtpPort = parseInt(this.config.get('SMTP_PORT') || '587');
+      // Port 465 requires secure: true, port 587 requires secure: false (uses STARTTLS)
+      const isSecure = smtpPort === 465;
+
       this.emailTransporter = nodemailer.createTransport({
         host: this.config.get('SMTP_HOST') || 'smtp.gmail.com',
-        port: parseInt(this.config.get('SMTP_PORT') || '587'),
-        secure: this.config.get('SMTP_SECURE') === 'true',
+        port: smtpPort,
+        secure: isSecure, // true for 465, false for other ports (587 uses STARTTLS)
         auth: {
           user: this.config.get('SMTP_USER'),
           pass: this.config.get('SMTP_PASS'),
         },
+        // Enable STARTTLS for port 587
+        ...(smtpPort === 587 && {
+          requireTLS: true,
+          tls: {
+            ciphers: 'SSLv3',
+            rejectUnauthorized: false, // Use true in production with valid certificates
+          },
+        }),
         pool: true, // Use pooled connections
         maxConnections: 5,
         maxMessages: 100,
