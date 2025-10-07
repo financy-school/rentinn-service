@@ -90,24 +90,62 @@ export class NotificationService {
     }
 
     try {
-      const firebaseConfig = this.config.get('FIREBASE_SERVICE_ACCOUNT_PATH');
-
-      if (!firebaseConfig) {
-        this.logger.warn('Firebase service account path not configured');
+      // Check if Firebase is already initialized
+      if (admin.apps.length > 0) {
+        this.firebaseApp = admin.app();
+        this.logger.log('Firebase Admin SDK already initialized');
         return;
       }
 
-      // Check if Firebase is already initialized
-      if (admin.apps.length === 0) {
-        this.firebaseApp = admin.initializeApp({
-          credential: admin.credential.cert(firebaseConfig),
-        });
-        this.logger.log('Firebase Admin SDK initialized successfully');
+      // Try to get service account from path or JSON string
+      const serviceAccountPath = this.config.get(
+        'FIREBASE_SERVICE_ACCOUNT_PATH',
+      );
+      const serviceAccountJson = this.config.get(
+        'FIREBASE_SERVICE_ACCOUNT_JSON',
+      );
+
+      let credential: admin.credential.Credential;
+
+      if (serviceAccountJson) {
+        // Parse JSON string directly (useful for environment variables)
+        const serviceAccount = JSON.parse(serviceAccountJson);
+        credential = admin.credential.cert(serviceAccount);
+        this.logger.log('Firebase initialized with JSON configuration');
+      } else if (serviceAccountPath) {
+        // Load from file path
+        const absolutePath = path.isAbsolute(serviceAccountPath)
+          ? serviceAccountPath
+          : path.join(process.cwd(), serviceAccountPath);
+
+        if (!fs.existsSync(absolutePath)) {
+          throw new Error(
+            `Firebase service account file not found at: ${absolutePath}`,
+          );
+        }
+
+        const serviceAccount = JSON.parse(
+          fs.readFileSync(absolutePath, 'utf8'),
+        );
+        credential = admin.credential.cert(serviceAccount);
+        this.logger.log('Firebase initialized with service account file');
       } else {
-        this.firebaseApp = admin.app();
+        this.logger.warn(
+          'Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT_JSON',
+        );
+        return;
       }
+
+      this.firebaseApp = admin.initializeApp({
+        credential,
+      });
+
+      this.logger.log('Firebase Admin SDK initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Firebase:', error);
+      this.logger.error(
+        'Make sure your Firebase service account JSON is valid',
+      );
     }
   }
 
