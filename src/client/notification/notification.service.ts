@@ -84,8 +84,12 @@ export class NotificationService {
    * Initialize Firebase Admin SDK
    */
   private initializeFirebase(): void {
+    this.logger.log(
+      `Firebase initialization started. Enabled: ${this.pushNotificationEnabled}`,
+    );
+
     if (!this.pushNotificationEnabled) {
-      this.logger.log('Push notifications are disabled');
+      this.logger.warn('Push notifications are disabled in configuration');
       return;
     }
 
@@ -105,30 +109,45 @@ export class NotificationService {
         'FIREBASE_SERVICE_ACCOUNT_JSON',
       );
 
+      this.logger.log(
+        `Config check - Path: ${serviceAccountPath ? 'SET' : 'NOT SET'}, JSON: ${serviceAccountJson ? 'SET' : 'NOT SET'}`,
+      );
+
       let credential: admin.credential.Credential;
 
       if (serviceAccountJson) {
         // Parse JSON string directly (useful for environment variables)
+        this.logger.log('Loading Firebase from JSON string...');
         const serviceAccount = JSON.parse(serviceAccountJson);
         credential = admin.credential.cert(serviceAccount);
-        this.logger.log('Firebase initialized with JSON configuration');
+        this.logger.log(
+          `Firebase initialized with JSON configuration for project: ${serviceAccount.project_id}`,
+        );
       } else if (serviceAccountPath) {
         // Load from file path
         const absolutePath = path.isAbsolute(serviceAccountPath)
           ? serviceAccountPath
           : path.join(process.cwd(), serviceAccountPath);
 
+        this.logger.log(`Loading Firebase from file: ${absolutePath}`);
+
         if (!fs.existsSync(absolutePath)) {
+          this.logger.error(`File not found at: ${absolutePath}`);
+          this.logger.error(`Current working directory: ${process.cwd()}`);
+          this.logger.error(
+            `Checking if file exists: ${fs.existsSync(absolutePath)}`,
+          );
           throw new Error(
             `Firebase service account file not found at: ${absolutePath}`,
           );
         }
 
-        const serviceAccount = JSON.parse(
-          fs.readFileSync(absolutePath, 'utf8'),
-        );
+        const fileContent = fs.readFileSync(absolutePath, 'utf8');
+        const serviceAccount = JSON.parse(fileContent);
         credential = admin.credential.cert(serviceAccount);
-        this.logger.log('Firebase initialized with service account file');
+        this.logger.log(
+          `Firebase initialized with service account file for project: ${serviceAccount.project_id}`,
+        );
       } else {
         this.logger.warn(
           'Firebase service account not configured. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT_JSON',
@@ -140,9 +159,15 @@ export class NotificationService {
         credential,
       });
 
-      this.logger.log('Firebase Admin SDK initialized successfully');
+      this.logger.log(
+        '🎉 Firebase Admin SDK initialized successfully and ready to send push notifications!',
+      );
     } catch (error) {
-      this.logger.error('Failed to initialize Firebase:', error);
+      this.logger.error('❌ Failed to initialize Firebase:', error);
+      if (error instanceof Error) {
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
       this.logger.error(
         'Make sure your Firebase service account JSON is valid',
       );
