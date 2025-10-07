@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to RentInn</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding: 20px">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="
+              background-color: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  padding: 40px 30px;
+                  text-align: center;
+                "
+              >
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px">
+                  Welcome to RentInn! 🏠
+                </h1>
+              </td>
+            </tr>
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 30px">
+                <h2 style="color: #333333; margin: 0 0 20px">Hi {{name}},</h2>
+                <p style="color: #666666; line-height: 1.6; margin: 0 0 20px">
+                  Thank you for joining RentInn! We're excited to have you on
+                  board. Your account has been created successfully with the
+                  email <strong>{{email}}</strong>.
+                </p>
+                <p style="color: #666666; line-height: 1.6; margin: 0 0 30px">
+                  RentInn makes property management simple and efficient. You
+                  can now:
+                </p>
+                <ul
+                  style="
+                    color: #666666;
+                    line-height: 1.8;
+                    margin: 0 0 30px;
+                    padding-left: 20px;
+                  "
+                >
+                  <li>Manage your properties and tenants</li>
+                  <li>Track rent payments</li>
+                  <li>Handle maintenance requests</li>
+                  <li>Generate reports and insights</li>
+                </ul>
+                <div style="text-align: center; margin: 30px 0">
+                  <a
+                    href="{{loginUrl}}"
+                    style="
+                      display: inline-block;
+                      padding: 15px 40px;
+                      background: linear-gradient(
+                        135deg,
+                        #667eea 0%,
+                        #764ba2 100%
+                      );
+                      color: #ffffff;
+                      text-decoration: none;
+                      border-radius: 5px;
+                      font-weight: bold;
+                    "
+                    >Get Started</a
+                  >
+                </div>
+                <p style="color: #666666; line-height: 1.6; margin: 20px 0 0">
+                  If you have any questions, feel free to reply to this email.
+                  We're here to help!
+                </p>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  background-color: #f8f9fa;
+                  padding: 30px;
+                  text-align: center;
+                  border-top: 1px solid #e9ecef;
+                "
+              >
+                <p style="color: #999999; font-size: 14px; margin: 0 0 10px">
+                  Best regards,<br />
+                  <strong>The RentInn Team</strong>
+                </p>
+                <p style="color: #999999; font-size: 12px; margin: 10px 0">
+                  <a
+                    href="{{websiteUrl}}"
+                    style="color: #667eea; text-decoration: none"
+                    >Visit Website</a
+                  >
+                  |
+                  <a
+                    href="{{privacyUrl}}"
+                    style="color: #667eea; text-decoration: none"
+                    >Privacy Policy</a
+                  >
+                  |
+                  <a
+                    href="{{termsUrl}}"
+                    style="color: #667eea; text-decoration: none"
+                    >Terms of Service</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

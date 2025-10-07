@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maintenance Request</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding: 20px">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="
+              background-color: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                  padding: 40px 30px;
+                  text-align: center;
+                "
+              >
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px">
+                  🔧 New Maintenance Request
+                </h1>
+              </td>
+            </tr>
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 30px">
+                <h2 style="color: #333333; margin: 0 0 20px">
+                  Hi {{landlordName}},
+                </h2>
+                <p style="color: #666666; line-height: 1.6; margin: 0 0 20px">
+                  You have received a new maintenance request from
+                  <strong>{{tenantName}}</strong>.
+                </p>
+                <div
+                  style="
+                    background-color: #fffbf0;
+                    border-left: 4px solid #fee140;
+                    padding: 20px;
+                    margin: 20px 0;
+                  "
+                >
+                  <table
+                    width="100%"
+                    cellpadding="8"
+                    cellspacing="0"
+                    border="0"
+                  >
+                    <tr>
+                      <td style="color: #666666; font-weight: bold">
+                        Property:
+                      </td>
+                      <td style="color: #333333">{{propertyAddress}}</td>
+                    </tr>
+                    <tr>
+                      <td style="color: #666666; font-weight: bold">Tenant:</td>
+                      <td style="color: #333333">{{tenantName}}</td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="
+                          color: #666666;
+                          font-weight: bold;
+                          vertical-align: top;
+                        "
+                      >
+                        Priority:
+                      </td>
+                      <td>
+                        <span
+                          style="
+                            display: inline-block;
+                            padding: 4px 12px;
+                            background-color: #fee140;
+                            color: #333333;
+                            border-radius: 12px;
+                            font-size: 12px;
+                            font-weight: bold;
+                          "
+                          >{{priority}}</span
+                        >
+                      </td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="
+                          color: #666666;
+                          font-weight: bold;
+                          vertical-align: top;
+                        "
+                      >
+                        Issue:
+                      </td>
+                      <td style="color: #333333; line-height: 1.6">
+                        {{issueDescription}}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <p style="color: #666666; line-height: 1.6; margin: 20px 0">
+                  Please review this request and take appropriate action. Timely
+                  response to maintenance requests helps maintain tenant
+                  satisfaction.
+                </p>
+                <div style="text-align: center; margin: 30px 0">
+                  <a
+                    href="{{dashboardUrl}}"
+                    style="
+                      display: inline-block;
+                      padding: 15px 40px;
+                      background: linear-gradient(
+                        135deg,
+                        #fa709a 0%,
+                        #fee140 100%
+                      );
+                      color: #ffffff;
+                      text-decoration: none;
+                      border-radius: 5px;
+                      font-weight: bold;
+                    "
+                    >View Request</a
+                  >
+                </div>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  background-color: #f8f9fa;
+                  padding: 30px;
+                  text-align: center;
+                  border-top: 1px solid #e9ecef;
+                "
+              >
+                <p style="color: #999999; font-size: 14px; margin: 0 0 10px">
+                  Best regards,<br />
+                  <strong>The RentInn Team</strong>
+                </p>
+                <p style="color: #999999; font-size: 12px; margin: 10px 0">
+                  <a
+                    href="{{websiteUrl}}"
+                    style="color: #fa709a; text-decoration: none"
+                    >Visit Website</a
+                  >
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -6,12 +6,14 @@ import { Rental } from './entities/rental.entity';
 import { Payment } from './entities/payment.entity';
 import { PropertiesModule } from '../properties/properties.module';
 import { KycModule } from '../kyc/kyc.module';
+import { NotificationModule } from '../client/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Rental, Payment]),
     PropertiesModule,
     KycModule,
+    NotificationModule,
   ],
   controllers: [RentalsController],
   providers: [RentalsService],

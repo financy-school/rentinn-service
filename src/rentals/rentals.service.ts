@@ -17,6 +17,7 @@ import { PropertiesService } from '../properties/properties.service';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycService } from '../kyc/kyc.service';
 import { v7 as uuidv7 } from 'uuid';
+import { NotificationService } from '../client/notification/notification.service';
 
 @Injectable()
 export class RentalsService {
@@ -28,6 +29,7 @@ export class RentalsService {
     private readonly propertiesService: PropertiesService,
     private readonly kycService: KycService,
     private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
   ) {}
 
   /**
@@ -327,6 +329,35 @@ export class RentalsService {
       );
 
       await queryRunner.commitTransaction();
+
+      // Send payment notification email to landlord
+      try {
+        const landlord = await this.propertiesService.findPropertyById(
+          rental.property_id,
+          user_id,
+        );
+
+        const property = await this.propertiesService.findPropertyById(
+          rental.property_id,
+          user_id,
+        );
+
+        if (landlord.owner && landlord.owner.email) {
+          await this.notificationService.sendPaymentReceivedEmail(
+            landlord.owner.email,
+            `${landlord.owner.firstName} ${landlord.owner.lastName}`,
+            landlord.owner_id,
+            rental.tenant.name,
+            property.address,
+            recordPaymentDto.amount,
+            recordPaymentDto.paymentDate,
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send payment notification email:', error);
+        // Don't fail payment recording if email fails
+      }
+
       return savedPayment;
     } catch (error) {
       await queryRunner.rollbackTransaction();
