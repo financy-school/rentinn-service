@@ -34,6 +34,7 @@ export class AuthService {
       await this.notificationService.sendWelcomeEmail(
         user.email,
         `${user.firstName} ${user.lastName}`,
+        user.user_id,
       );
     } catch (error) {
       console.error('Failed to send welcome email:', error);

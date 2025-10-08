@@ -332,21 +332,16 @@ export class RentalsService {
 
       // Send payment notification email to landlord
       try {
-        const landlord = await this.propertiesService.findPropertyById(
-          rental.property_id,
-          user_id,
-        );
-
         const property = await this.propertiesService.findPropertyById(
           rental.property_id,
           user_id,
         );
 
-        if (landlord.owner && landlord.owner.email) {
+        if (property.owner && property.owner.email) {
           await this.notificationService.sendPaymentReceivedEmail(
-            landlord.owner.email,
-            `${landlord.owner.firstName} ${landlord.owner.lastName}`,
-            landlord.owner_id,
+            property.owner.email,
+            `${property.owner.firstName} ${property.owner.lastName}`,
+            property.owner.user_id,
             rental.tenant.name,
             property.address,
             recordPaymentDto.amount,
