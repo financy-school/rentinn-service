@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
@@ -19,9 +20,13 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { UserRole } from '../common/enums/user-role.enum';
 import { v7 as uuidv7 } from 'uuid';
+import { NotificationService } from '../client/notification/notification.service';
+import { PropertiesService } from '../properties/properties.service';
 
 @Injectable()
 export class InvoiceService {
+  private readonly logger = new Logger(InvoiceService.name);
+
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
@@ -35,6 +40,8 @@ export class InvoiceService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
+    private readonly notificationService: NotificationService,
+    private readonly propertiesService: PropertiesService,
   ) {}
 
   /**
@@ -279,6 +286,63 @@ export class InvoiceService {
 
     // Update invoice payment status
     await this.updateInvoicePaymentStatus(invoice.invoice_id);
+
+    // Send payment notification email to landlord
+    try {
+      this.logger.log('🔔 Starting payment notification process...');
+      this.logger.log(`Invoice ID: ${invoice.invoice_id}`);
+      this.logger.log(`Payment Amount: ${recordPaymentDto.amount}`);
+
+      // Get tenant information
+      const tenant = await this.tenantRepository.findOne({
+        where: { tenant_id: invoice.tenant_id },
+      });
+
+      if (!tenant) {
+        this.logger.warn(`Tenant not found for invoice ${invoice.invoice_id}`);
+        return savedPayment;
+      }
+
+      this.logger.log(`Tenant: ${tenant.name}`);
+
+      // Get property and owner information
+      const property = await this.propertiesService.findPropertyById(
+        invoice.property_id,
+        invoice.user_id,
+      );
+
+      this.logger.log(`Property: ${property.address}`);
+      this.logger.log(
+        `Property owner details: ${JSON.stringify(property.owner)}`,
+      );
+
+      if (property.owner && property.owner.email) {
+        this.logger.log('📧 Sending payment notification email to landlord...');
+        this.logger.log(`Landlord email: ${property.owner.email}`);
+
+        await this.notificationService.sendPaymentReceivedEmail(
+          property.owner.email,
+          `${property.owner.firstName} ${property.owner.lastName}`,
+          property.owner.user_id,
+          tenant.name,
+          property.address,
+          recordPaymentDto.amount,
+          recordPaymentDto.paymentDate instanceof Date
+            ? recordPaymentDto.paymentDate.toISOString()
+            : recordPaymentDto.paymentDate,
+        );
+
+        this.logger.log('✅ Payment notification email sent successfully!');
+      } else {
+        this.logger.warn('⚠️ No owner email found for property');
+      }
+    } catch (error) {
+      this.logger.error('❌ Failed to send payment notification email:', error);
+      if (error instanceof Error) {
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
+    }
 
     return savedPayment;
   }

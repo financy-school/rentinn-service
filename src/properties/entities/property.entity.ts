@@ -60,12 +60,12 @@ export class Property {
   @Column({ nullable: true })
   insuranceDetails: string;
 
-  @ManyToOne(() => User, (user) => user.properties)
-  @JoinColumn({ name: 'ownerId' })
-  owner: User;
-
   @Column({ type: 'varchar', length: 70 })
   owner_id: string;
+
+  @ManyToOne(() => User, (user) => user.properties)
+  @JoinColumn({ name: 'owner_id' })
+  owner: User;
 
   @OneToMany(() => Room, (room) => room.property, { cascade: true })
   rooms: Room[];

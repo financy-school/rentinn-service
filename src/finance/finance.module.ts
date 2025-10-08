@@ -11,6 +11,8 @@ import { Payment } from '../rentals/entities/payment.entity';
 import { Rental } from '../rentals/entities/rental.entity';
 import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenant/entities/tenant.entity';
+import { NotificationModule } from '../client/notification/notification.module';
+import { PropertiesModule } from '../properties/properties.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { Tenant } from '../tenant/entities/tenant.entity';
       User,
       Tenant,
     ]),
+    NotificationModule,
+    PropertiesModule,
   ],
   controllers: [FinanceController, InvoiceController],
   providers: [FinanceService, InvoiceService],

@@ -178,6 +178,15 @@ export class NotificationService {
     } = sendEmailNotification;
 
     try {
+      this.logger.log('📧 Preparing to send email...');
+      this.logger.log(`To: ${to_address}`);
+      this.logger.log(`Subject: ${subject}`);
+
+      if (!this.emailTransporter) {
+        this.logger.error('❌ Email transporter not initialized!');
+        throw new Error('Email transporter not initialized');
+      }
+
       const mailOptions: nodemailer.SendMailOptions = {
         from: sender_address || this.defaultSenderEmail,
         to: to_address,
@@ -191,11 +200,16 @@ export class NotificationService {
       if (text_content) mailOptions.text = text_content;
       if (attachments) mailOptions.attachments = attachments.flat();
 
+      this.logger.log('📤 Sending email via SMTP...');
       const info = await this.emailTransporter.sendMail(mailOptions);
-      this.logger.log(`Email sent successfully: ${info.messageId}`);
+      this.logger.log(`✅ Email sent successfully: ${info.messageId}`);
       return true;
     } catch (error) {
-      this.logger.error('Failed to send email:', error);
+      this.logger.error('❌ Failed to send email:', error);
+      if (error instanceof Error) {
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
       throw error;
     }
   }
@@ -454,8 +468,19 @@ export class NotificationService {
     amount: number,
     paymentDate: string,
   ): Promise<void> {
+    this.logger.log('💰 sendPaymentReceivedEmail called');
+    this.logger.log(`Landlord email: ${landlordEmail}`);
+    this.logger.log(`Landlord name: ${landlordName}`);
+    this.logger.log(`Tenant name: ${tenantName}`);
+    this.logger.log(`Property: ${propertyAddress}`);
+    this.logger.log(`Amount: $${amount}`);
+    this.logger.log(`Payment date: ${paymentDate}`);
+
     try {
+      this.logger.log('📄 Loading email template...');
       const template = this.loadEmailTemplate('payment-received-email');
+
+      this.logger.log('🔧 Customizing template with variables...');
       const customizedTemplate = this.replaceTemplateVariables(template, {
         landlordName,
         tenantName,
@@ -466,28 +491,42 @@ export class NotificationService {
         websiteUrl: this.frontendUrl,
       });
 
+      this.logger.log('📧 Calling sendEmail...');
       await this.sendEmail({
         to_address: landlordEmail,
         subject: `Payment Received - $${amount.toFixed(2)} from ${tenantName}`,
         html_content: customizedTemplate,
       });
 
+      this.logger.log('✅ Payment received email sent successfully.');
+
       // Send push notification
       if (landlordId) {
-        await this.sendPushNotification({
-          user_id: landlordId,
-          title: 'Payment Received! 💰',
-          body: `${tenantName} paid $${amount.toFixed(2)} for ${propertyAddress}`,
-          data: {
-            type: 'payment_received',
-            amount: amount.toString(),
-            tenant: tenantName,
-            screen: 'payment_details',
-          },
-        });
+        this.logger.log('📱 Sending payment received push notification...');
+        try {
+          await this.sendPushNotification({
+            user_id: landlordId,
+            title: 'Payment Received! 💰',
+            body: `${tenantName} paid $${amount.toFixed(2)} for ${propertyAddress}`,
+            data: {
+              type: 'payment_received',
+              amount: amount.toString(),
+              tenant: tenantName,
+              screen: 'payment_details',
+            },
+          });
+          this.logger.log('✅ Push notification sent successfully.');
+        } catch (pushError) {
+          this.logger.warn('⚠️ Failed to send push notification:', pushError);
+        }
       }
     } catch (error) {
-      this.logger.error('Failed to send payment received email:', error);
+      this.logger.error('❌ Failed to send payment received email:', error);
+      if (error instanceof Error) {
+        this.logger.error(`Error name: ${error.name}`);
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
       throw error;
     }
   }

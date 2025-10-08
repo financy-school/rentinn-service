@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -21,6 +22,7 @@ import { NotificationService } from '../client/notification/notification.service
 
 @Injectable()
 export class RentalsService {
+  private readonly logger = new Logger(RentalsService.name);
   constructor(
     @InjectRepository(Rental)
     private readonly rentalRepository: Repository<Rental>,
@@ -337,7 +339,12 @@ export class RentalsService {
           user_id,
         );
 
+        this.logger.log(
+          `Property owner details: ${JSON.stringify(property.owner)}`,
+        );
+
         if (property.owner && property.owner.email) {
+          this.logger.log('Sending payment notification email to landlord...');
           await this.notificationService.sendPaymentReceivedEmail(
             property.owner.email,
             `${property.owner.firstName} ${property.owner.lastName}`,
@@ -347,10 +354,11 @@ export class RentalsService {
             recordPaymentDto.amount,
             recordPaymentDto.paymentDate,
           );
+        } else {
+          this.logger.warn('No owner email found for property');
         }
       } catch (error) {
-        console.error('Failed to send payment notification email:', error);
-        // Don't fail payment recording if email fails
+        this.logger.error('Failed to send payment notification email:', error);
       }
 
       return savedPayment;
