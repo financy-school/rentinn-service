@@ -15,8 +15,7 @@ export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
   private emailTransporter: nodemailer.Transporter;
   private firebaseApp: admin.app.App;
-  private readonly emailSendingEnabled: boolean;
-  private readonly pushNotificationEnabled: boolean;
+
   private readonly defaultSenderEmail: string;
   private readonly frontendUrl: string;
 
@@ -25,10 +24,6 @@ export class NotificationService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {
-    this.emailSendingEnabled =
-      this.config.get('EMAIL_SENDING_ENABLED') === 'true';
-    this.pushNotificationEnabled =
-      this.config.get('PUSH_NOTIFICATION_ENABLED') === 'true';
     this.defaultSenderEmail =
       this.config.get('EMAIL_FROM') || 'noreply@rentinn.com';
     this.frontendUrl = this.config.get('FRONTEND_URL') || 'https://rentinn.com';
@@ -84,15 +79,6 @@ export class NotificationService {
    * Initialize Firebase Admin SDK
    */
   private initializeFirebase(): void {
-    this.logger.log(
-      `Firebase initialization started. Enabled: ${this.pushNotificationEnabled}`,
-    );
-
-    if (!this.pushNotificationEnabled) {
-      this.logger.warn('Push notifications are disabled in configuration');
-      return;
-    }
-
     try {
       // Check if Firebase is already initialized
       if (admin.apps.length > 0) {
@@ -180,11 +166,6 @@ export class NotificationService {
   async sendEmail(
     sendEmailNotification: SendEmailNotification,
   ): Promise<boolean> {
-    if (!this.emailSendingEnabled) {
-      this.logger.log('Email sending is disabled');
-      return false;
-    }
-
     const {
       sender_address,
       to_address,
@@ -225,11 +206,6 @@ export class NotificationService {
   async sendPushNotification(
     notification: SendPushNotification,
   ): Promise<boolean> {
-    if (!this.pushNotificationEnabled) {
-      this.logger.log('Push notifications are disabled');
-      return false;
-    }
-
     const { user_id, title, body, data, image_url } = notification;
 
     try {
@@ -299,11 +275,6 @@ export class NotificationService {
     data?: Record<string, string>,
     image_url?: string,
   ): Promise<{ success: number; failure: number }> {
-    if (!this.pushNotificationEnabled) {
-      this.logger.log('Push notifications are disabled');
-      return { success: 0, failure: 0 };
-    }
-
     try {
       const users = await this.userRepository.findBy({ user_id: In(user_ids) });
       const tokens = users
@@ -438,11 +409,6 @@ export class NotificationService {
     userName: string,
     userId?: string,
   ): Promise<void> {
-    if (!this.emailSendingEnabled) {
-      this.logger.log('Email sending is disabled');
-      return;
-    }
-
     try {
       const template = this.loadEmailTemplate('welcome-email');
       const customizedTemplate = this.replaceTemplateVariables(template, {
@@ -462,7 +428,7 @@ export class NotificationService {
       });
 
       // Send push notification if user has FCM token
-      if (userId && this.pushNotificationEnabled) {
+      if (userId) {
         await this.sendPushNotification({
           user_id: userId,
           title: 'Welcome to RentInn! 🎉',
@@ -488,11 +454,6 @@ export class NotificationService {
     amount: number,
     paymentDate: string,
   ): Promise<void> {
-    if (!this.emailSendingEnabled) {
-      this.logger.log('Email sending is disabled');
-      return;
-    }
-
     try {
       const template = this.loadEmailTemplate('payment-received-email');
       const customizedTemplate = this.replaceTemplateVariables(template, {
@@ -512,7 +473,7 @@ export class NotificationService {
       });
 
       // Send push notification
-      if (landlordId && this.pushNotificationEnabled) {
+      if (landlordId) {
         await this.sendPushNotification({
           user_id: landlordId,
           title: 'Payment Received! 💰',
@@ -542,11 +503,6 @@ export class NotificationService {
     amount: number,
     dueDate: string,
   ): Promise<void> {
-    if (!this.emailSendingEnabled) {
-      this.logger.log('Email sending is disabled');
-      return;
-    }
-
     try {
       const template = this.loadEmailTemplate('rent-reminder-email');
       const customizedTemplate = this.replaceTemplateVariables(template, {
@@ -565,7 +521,7 @@ export class NotificationService {
       });
 
       // Send push notification
-      if (tenantId && this.pushNotificationEnabled) {
+      if (tenantId) {
         await this.sendPushNotification({
           user_id: tenantId,
           title: 'Rent Payment Reminder 🏠',
@@ -596,11 +552,6 @@ export class NotificationService {
     issueDescription: string,
     priority: string,
   ): Promise<void> {
-    if (!this.emailSendingEnabled) {
-      this.logger.log('Email sending is disabled');
-      return;
-    }
-
     try {
       const template = this.loadEmailTemplate('maintenance-request-email');
       const customizedTemplate = this.replaceTemplateVariables(template, {
@@ -620,7 +571,7 @@ export class NotificationService {
       });
 
       // Send push notification
-      if (landlordId && this.pushNotificationEnabled) {
+      if (landlordId) {
         await this.sendPushNotification({
           user_id: landlordId,
           title: '🔧 New Maintenance Request',
