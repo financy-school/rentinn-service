@@ -138,13 +138,12 @@ export class RentalsService {
         const buffer = await this.documentsService.createPDF(html, options);
 
         // Upload PDF buffer and create document record
-        const { document } = await this.documentsService.uploadPdfBuffer(
+        const document = await this.documentsService.uploadPdfBuffer(
           buffer,
           `${savedRental.rental_id}_rental_agreement.pdf`,
           savedRental.property_id,
           'Rental Agreement',
           'rental_agreement',
-          60 * 60 * 24 * 30, // 30 days
         );
 
         await queryRunner.manager.update(

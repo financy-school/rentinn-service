@@ -18,8 +18,9 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
-import * as fs from 'fs';
 import * as pdf from 'html-pdf';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class DocumentsService {
@@ -48,6 +49,7 @@ export class DocumentsService {
     @InjectRepository(DocumentEntity)
     private readonly document_repository: Repository<DocumentEntity>,
     private readonly config: ConfigService,
+    private readonly http_service: HttpService,
   ) {
     this.org_docs_bucket_name = this.config.get('DOCS_BUCKET_NAME');
 
@@ -73,6 +75,7 @@ export class DocumentsService {
 
   /**
    * Upload PDF buffer to S3 and create document record
+   * Uses presigned upload URL for consistency with other document uploads
    */
   async uploadPdfBuffer(
     buffer: Buffer,
@@ -80,36 +83,21 @@ export class DocumentsService {
     propertyId: string,
     descriptor: string,
     docType: string,
-    expireIn: number = 60 * 60 * 24 * 7, // 7 days default
-  ): Promise<{ url: string; key: string; document: DocumentEntity }> {
-    const key = `${docType}/${fileName}`;
+  ): Promise<DocumentEntity> {
+    try {
+      const document = await this.create(propertyId, {
+        file_type: 'application/pdf',
+        file_name: fileName,
+        descriptor,
+        is_signature_required: docType === 'rental_agreement',
+        is_signed: false,
+        doc_type: docType,
+      });
 
-    await this.s3_client
-      .putObject({
-        Bucket: this.org_docs_bucket_name,
-        Key: key,
-        Body: buffer,
-        ContentType: 'application/pdf',
-      })
-      .promise();
+      await this.uploadDocument(document.upload_url, buffer, 'application/pdf');
 
-    const url = await this.fetchS3DownloadPath({
-      document_path: key,
-      expire_in: expireIn,
-    });
-
-    // Create document record
-    const document = await this.create(propertyId, {
-      file_type: 'application/pdf',
-      file_name: `${fileName}`,
-      descriptor,
-      is_signature_required: docType === 'rental_agreement',
-      is_signed: false,
-      doc_type: docType,
-      download_url: url,
-    });
-
-    return { url, key, document };
+      return document;
+    } catch (error) {}
   }
 
   /**
@@ -152,34 +140,6 @@ export class DocumentsService {
         }
       });
     });
-  }
-
-  /**
-   * Create PDF from HTML template file
-   * More efficient for repeated PDF generation with templates
-   */
-  async createPDFFromTemplate(
-    templatePath: string,
-    data: any,
-    options?: pdf.CreateOptions,
-  ): Promise<Buffer> {
-    try {
-      // Read template file
-      const templateContent = await fs.promises.readFile(templatePath, 'utf-8');
-
-      // Simple template variable replacement
-      let html = templateContent;
-      for (const [key, value] of Object.entries(data)) {
-        const regex = new RegExp(`{{${key}}}`, 'g');
-        html = html.replace(regex, String(value));
-      }
-
-      return this.createPDF(html, options);
-    } catch (error: any) {
-      throw new Error(
-        `PDF template generation failed: ${error.message || String(error)}`,
-      );
-    }
   }
 
   async create(
@@ -499,12 +459,20 @@ export class DocumentsService {
       url = await this.s3_client.getSignedUrlPromise('getObject', {
         Bucket: this.org_docs_bucket_name,
         Key: document_path,
-        Expires: expire_in, //time to expire in seconds
+        Expires: expire_in,
       });
     } catch (error) {
       throw new Error(String(error));
     }
 
     return url;
+  }
+
+  async uploadDocument(upload_url: string, buffer: Buffer, file_type: string) {
+    await lastValueFrom(
+      this.http_service.put(upload_url, buffer, {
+        headers: { 'Content-Type': file_type },
+      }),
+    );
   }
 }

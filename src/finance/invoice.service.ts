@@ -158,13 +158,12 @@ export class InvoiceService {
       const buffer = await this.documentsService.createPDF(html, options);
 
       // Upload PDF buffer and create document record
-      const { document } = await this.documentsService.uploadPdfBuffer(
+      const document = await this.documentsService.uploadPdfBuffer(
         buffer,
         `${savedInvoice.invoice_id}.pdf`,
         savedInvoice.property_id || null,
         'Invoice PDF',
         'invoice',
-        60 * 60 * 24 * 7,
       );
 
       savedInvoice.notes = `${savedInvoice.notes || ''}\nInvoice PDF: ${tenant.name}`;
