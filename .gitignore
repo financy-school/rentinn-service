@@ -2,7 +2,7 @@
 /dist
 /node_modules
 /build
-package-lock.json
+# package-lock.json # Keep for Docker builds
 # Logs
 logs
 *.log
