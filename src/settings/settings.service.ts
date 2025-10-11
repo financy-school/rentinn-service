@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { UserSettings } from './entities/user-settings.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SettingsService {
@@ -47,7 +47,7 @@ export class SettingsService {
     const defaultSettings = this.settingsRepository.create({
       user_id,
       user,
-      user_setting_id: `SET-${uuidv7()}`,
+      user_setting_id: `SET-${uuidv4()}`,
       // Default values are set in the entity
     });
 

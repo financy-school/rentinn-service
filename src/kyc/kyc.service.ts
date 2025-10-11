@@ -12,7 +12,7 @@ import { UpdateKycDto } from './dto/update-kyc.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { KycStatus } from '../common/enums/kyc-status.enum';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class KycService {
@@ -38,7 +38,7 @@ export class KycService {
     }
 
     const newKyc = this.kycRepository.create({
-      kyc_id: `KYC-${uuidv7()}`,
+      kyc_id: `KYC-${uuidv4()}`,
       ...createKycDto,
       tenant_id: createKycDto.tenant_id,
       user_id: user_id,

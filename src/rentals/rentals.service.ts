@@ -17,7 +17,7 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import { PropertiesService } from '../properties/properties.service';
 import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycService } from '../kyc/kyc.service';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from '../client/notification/notification.service';
 import { DocumentsService } from '../documents/documents.service';
 import * as ejs from 'ejs';
@@ -79,7 +79,7 @@ export class RentalsService {
       const newRental = this.rentalRepository.create({
         ...createRentalDto,
         outstandingAmount,
-        rental_id: `RENTAL-${uuidv7()}`,
+        rental_id: `RENTAL-${uuidv4()}`,
         startDate: new Date(createRentalDto.startDate),
         endDate: createRentalDto.endDate
           ? new Date(createRentalDto.endDate)
@@ -362,7 +362,7 @@ export class RentalsService {
         notes: recordPaymentDto.notes,
         paymentMethod: recordPaymentDto.paymentMethod,
         transactionId: recordPaymentDto.transactionId,
-        payment_id: `PAYMENT-${uuidv7()}`,
+        payment_id: `PAYMENT-${uuidv4()}`,
         rental: rental,
         invoice_id: recordPaymentDto.invoice_id || null,
         recordedBy: recordPaymentDto.recordedById,

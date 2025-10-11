@@ -5,7 +5,7 @@ import { customHttpError } from '../core/custom-error/error-service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DocumentEntity } from './entities/document.entity';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { DOCUMENT_ID_PREFIX, ORG_DOC_EXPIRY } from '../config/config';
 import {
   DOC_CREATE_FAILED,
@@ -207,7 +207,7 @@ export class DocumentsService {
     try {
       // create new document
       const new_document = new DocumentEntity();
-      const uuid = uuidv7().replace(/-/g, '');
+      const uuid = uuidv4().replace(/-/g, '');
       new_document.document_id = `${DOCUMENT_ID_PREFIX}${uuid}`;
       new_document.property_id = property_id;
       new_document.file_name = file_name;

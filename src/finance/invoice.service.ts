@@ -21,7 +21,7 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import * as ejs from 'ejs';
 import * as path from 'path';
 import { UserRole } from '../common/enums/user-role.enum';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { NotificationService } from '../client/notification/notification.service';
 import { DocumentsService } from '../documents/documents.service';
 import { PropertiesService } from '../properties/properties.service';
@@ -88,7 +88,7 @@ export class InvoiceService {
     // Create invoice
     const invoice = this.invoiceRepository.create({
       user_id: createInvoiceDto.landlordId || userId,
-      invoice_id: `INV-${uuidv7()}`,
+      invoice_id: `INV-${uuidv4()}`,
       total_amount: totalAmount,
       outstanding_amount: totalAmount,
       invoice_number: this.generateInvoiceNumber(),
@@ -112,7 +112,7 @@ export class InvoiceService {
       this.invoiceItemRepository.create({
         invoice_id: savedInvoice.invoice_id,
         quantity: itemDto.quantity || 1,
-        item_id: `INVITEM-${uuidv7()}`,
+        item_id: `INVITEM-${uuidv4()}`,
         category: itemDto.category,
         description: itemDto.description,
         amount: itemDto.amount,
@@ -326,7 +326,7 @@ export class InvoiceService {
     // Create payment record
     const payment = this.paymentRepository.create({
       ...recordPaymentDto,
-      payment_id: `PAY-${uuidv7()}`,
+      payment_id: `PAY-${uuidv4()}`,
       rental_id: invoice.rental_id,
       invoice_id: invoice.invoice_id,
       recordedBy: userId,

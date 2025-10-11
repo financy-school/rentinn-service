@@ -15,7 +15,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { UserRole } from '../common/enums/user-role.enum';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class PropertiesService {
     const newProperty = this.propertyRepository.create({
       ...createPropertyDto,
       owner_id: userId,
-      property_id: `PROP-${uuidv7()}`,
+      property_id: `PROP-${uuidv4()}`,
     });
 
     return this.propertyRepository.save(newProperty);

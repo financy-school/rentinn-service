@@ -13,7 +13,7 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../common/enums/user-role.enum';
 import { PropertiesService } from '../properties/properties.service';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -42,7 +42,7 @@ export class UsersService {
     // Create new user
     const newUser = this.userRepository.create({
       ...createUserDto,
-      user_id: `USER-${uuidv7()}`, // Simple unique ID generation; replace with UUID in production
+      user_id: `USER-${uuidv4()}`, // Simple unique ID generation; replace with UUID in production
       password: hashedPassword,
     });
 

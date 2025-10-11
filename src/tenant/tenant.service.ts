@@ -12,7 +12,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { Room } from '../properties/entities/room.entity';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
 import { Property } from '../properties/entities/property.entity';
-import { v7 as uuidv7 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { RentalsService } from '../rentals/rentals.service';
 import { KycService } from '../kyc/kyc.service';
 
@@ -40,7 +40,7 @@ export class TenantService {
     if (!room) throw new NotFoundException('Room not found');
 
     const tenant = this.tenantRepository.create({
-      tenant_id: `TENANT-${uuidv7()}`,
+      tenant_id: `TENANT-${uuidv4()}`,
       name: createTenantDto.name,
       phone_number: createTenantDto.phone_number,
       alternate_phone: createTenantDto.alternate_phone,
