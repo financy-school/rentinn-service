@@ -8,13 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including dev dependencies for build)
-RUN npm ci
+# Use npm ci with specific flags for better performance
+RUN npm ci --prefer-offline --no-audit
 
 # Copy source code and configuration files
 COPY . .
 
-# Build the application with increased memory
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+# Build the application with increased memory (optimized for 2GB RAM instances)
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 RUN npm run build
 
 # Remove dev dependencies
