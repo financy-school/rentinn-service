@@ -89,24 +89,50 @@ cat > .env << EOL
 # Service Configuration
 SERVICE_NAME=rentinn-service
 SERVICE_PORT=${service_port}
+PORT=${service_port}
 NODE_ENV=production
 
 # Database Configuration
-DB_HOST=localhost
+DB_HOST=host.docker.internal
 DB_PORT=3306
 DB_USERNAME=${db_user}
 DB_PASSWORD=${db_password}
 DB_NAME=${db_name}
+DB_DATABASE=${db_name}
 
 # JWT Configuration
 JWT_SECRET=${jwt_secret}
 JWT_EXPIRATION=7d
 
-# AWS Configuration
+# AWS Configuration (General)
 AWS_REGION=${aws_region}
 AWS_BUCKET_NAME=${aws_bucket_name}
+AWS_ACCESS_KEY_ID=${aws_access_key}
+AWS_SECRET_ACCESS_KEY=${aws_secret_key}
 
-# Add other environment variables as needed
+# AWS Documents Configuration
+AWS_DOCS_REGION=${aws_docs_region}
+AWS_DOCS_ACCESS_KEY=${aws_docs_access_key}
+AWS_DOCS_SECRET_ACCESS_KEY=${aws_docs_secret_access_key}
+DOCS_BUCKET_NAME=${docs_bucket_name}
+
+# Email Configuration
+EMAIL_FROM=${email_from}
+SMTP_HOST=${smtp_host}
+SMTP_PORT=${smtp_port}
+SMTP_USER=${smtp_user}
+SMTP_PASS=${smtp_pass}
+SMTP_SECURE=${smtp_secure}
+EMAIL_SENDING_ENABLED=${email_sending_enabled}
+
+# Push Notifications
+PUSH_NOTIFICATION_ENABLED=${push_notification_enabled}
+
+# Firebase Configuration
+FIREBASE_SERVICE_ACCOUNT_PATH=${firebase_service_account_path}
+
+# Master DB Sync
+MASTER_DB_SYNC=${master_db_sync}
 EOL
 
 chown ubuntu:ubuntu .env

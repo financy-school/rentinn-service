@@ -98,3 +98,96 @@ variable "environment" {
   type        = string
   default     = "production"
 }
+
+# Email Configuration
+variable "email_from" {
+  description = "Email address to send emails from"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_host" {
+  description = "SMTP host"
+  type        = string
+  default     = "smtp.gmail.com"
+}
+
+variable "smtp_port" {
+  description = "SMTP port"
+  type        = number
+  default     = 587
+}
+
+variable "smtp_user" {
+  description = "SMTP username"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "smtp_pass" {
+  description = "SMTP password"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "smtp_secure" {
+  description = "Use secure SMTP connection"
+  type        = bool
+  default     = true
+}
+
+variable "email_sending_enabled" {
+  description = "Enable email sending"
+  type        = bool
+  default     = true
+}
+
+# AWS Documents Configuration
+variable "aws_docs_region" {
+  description = "AWS region for documents"
+  type        = string
+  default     = "ap-south-1"
+}
+
+variable "aws_docs_access_key" {
+  description = "AWS access key for documents"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "aws_docs_secret_access_key" {
+  description = "AWS secret access key for documents"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "docs_bucket_name" {
+  description = "S3 bucket name for documents"
+  type        = string
+  default     = ""
+}
+
+# Push Notifications
+variable "push_notification_enabled" {
+  description = "Enable push notifications"
+  type        = bool
+  default     = true
+}
+
+# Firebase Configuration
+variable "firebase_service_account_path" {
+  description = "Path to Firebase service account JSON"
+  type        = string
+  default     = "config/firebase/firebase-adminsdk.json"
+}
+
+# Master DB Sync
+variable "master_db_sync" {
+  description = "Enable master database synchronization"
+  type        = bool
+  default     = true
+}

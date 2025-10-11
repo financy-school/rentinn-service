@@ -13,6 +13,7 @@ services:
       - NODE_ENV=production
       - SERVICE_NAME=${SERVICE_NAME:-rentinn-service}
       - SERVICE_PORT=4200
+      - PORT=${PORT:-4200}
       # Database
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT:-3306}
@@ -20,14 +21,30 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_DATABASE=${DB_DATABASE}
-      # AWS
+      # AWS Documents
+      - AWS_DOCS_REGION=${AWS_DOCS_REGION}
+      - AWS_DOCS_ACCESS_KEY=${AWS_DOCS_ACCESS_KEY}
+      - AWS_DOCS_SECRET_ACCESS_KEY=${AWS_DOCS_SECRET_ACCESS_KEY}
+      - DOCS_BUCKET_NAME=${DOCS_BUCKET_NAME}
+      # AWS General
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
       # JWT
       - JWT_SECRET=${JWT_SECRET}
-      # Add other environment variables as needed
+      # Email Configuration
+      - EMAIL_FROM=${EMAIL_FROM}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - EMAIL_SENDING_ENABLED=${EMAIL_SENDING_ENABLED}
+      # Push Notifications
+      - PUSH_NOTIFICATION_ENABLED=${PUSH_NOTIFICATION_ENABLED}
+      # Firebase
+      - FIREBASE_SERVICE_ACCOUNT_PATH=${FIREBASE_SERVICE_ACCOUNT_PATH}
     volumes:
       # Mount config files if needed
       - ./config:/app/config:ro
