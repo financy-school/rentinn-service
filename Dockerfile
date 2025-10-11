@@ -45,8 +45,8 @@ RUN groupadd -g 1001 nodejs && \
 # Copy package files
 COPY package*.json ./
 
-# Install ONLY production dependencies
-RUN npm ci --only=production --prefer-offline --no-audit
+# Install production dependencies including optional dependencies (phantomjs-prebuilt)
+RUN npm ci --only=production --prefer-offline --no-audit --include=optional
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
