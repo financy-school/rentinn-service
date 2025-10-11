@@ -140,17 +140,19 @@ export class InvoiceService {
         { async: true },
       );
 
-      const options = {
-        childProcessOptions: {
-          env: {
-            OPENSSL_CONF: '/dev/null',
-          },
+      const options: any = {
+        format: 'A4',
+        orientation: 'portrait',
+        border: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
         },
-        width: '210mm',
-        height: '297mm',
         header: {
           height: '40mm',
         },
+        timeout: 30000,
       };
 
       const buffer = await this.documentsService.createPDF(html, options);

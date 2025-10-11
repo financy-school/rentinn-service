@@ -1,0 +1,103 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ubuntu
+        run: |
+          # Setup SSH
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          
+          # Deploy to server
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'ENDSSH'
+            set -e
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to project directory
+            cd /home/ubuntu/rentinn-service
+            
+            # Pull latest changes
+            echo "📥 Pulling latest changes from GitHub..."
+            git pull origin main
+            
+            # Backup current .env
+            if [ -f .env ]; then
+              cp .env .env.backup
+              echo "✅ Backed up .env file"
+            fi
+            
+            # Rebuild and restart containers
+            echo "🔨 Rebuilding Docker containers..."
+            docker-compose down
+            docker-compose build --no-cache
+            docker-compose up -d
+            
+            # Wait for container to be healthy
+            echo "⏳ Waiting for application to start..."
+            sleep 15
+            
+            # Check if container is running
+            if docker ps | grep -q rentinn-service; then
+              echo "✅ Container is running"
+            else
+              echo "❌ Container failed to start"
+              docker logs rentinn-service --tail 50
+              exit 1
+            fi
+            
+            # Health check
+            echo "🏥 Performing health check..."
+            HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/health || echo "000")
+            
+            if [ "$HEALTH_STATUS" = "200" ]; then
+              echo "✅ Health check passed"
+              echo "🎉 Deployment completed successfully!"
+            else
+              echo "❌ Health check failed (status: $HEALTH_STATUS)"
+              docker logs rentinn-service --tail 50
+              exit 1
+            fi
+            
+            # Show container status
+            echo ""
+            echo "📊 Container status:"
+            docker ps | grep rentinn-service
+            
+            echo ""
+            echo "📝 Recent logs:"
+            docker logs rentinn-service --tail 20
+          ENDSSH
+          
+          echo ""
+          echo "✨ Deployment completed!"
+          echo "🔗 Application: https://rentalinn.ddns.net"
+
+      - name: Deployment Status
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Access your application at: https://rentalinn.ddns.net"
+
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          echo "❌ Deployment failed. Please check the logs above."
+          exit 1

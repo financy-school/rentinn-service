@@ -19,8 +19,7 @@ import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
 import * as fs from 'fs';
-import * as path from 'path';
-const PDFDocument = require('pdfkit');
+import * as pdf from 'html-pdf';
 
 @Injectable()
 export class DocumentsService {
@@ -114,65 +113,68 @@ export class DocumentsService {
   }
 
   /**
-   * Create PDF buffer from HTML using PDFKit with basic HTML parsing
+   * Create PDF buffer from HTML using html-pdf library
+   * This method provides better HTML rendering and scalability
    */
-  async createPDF(html: string, options: any): Promise<Buffer> {
+  async createPDF(html: string, options?: pdf.CreateOptions): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        info: {
-          Title: 'Document',
-          Author: 'RentInn Service',
+      // Default options for better PDF generation
+      const defaultOptions: pdf.CreateOptions = {
+        format: 'A4',
+        border: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
         },
-      });
+        header: {
+          height: '15mm',
+        },
+        footer: {
+          height: '15mm',
+        },
+        timeout: 30000, // 30 second timeout
+        ...options,
+      };
 
-      const buffers: Buffer[] = [];
-      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', reject);
-
-      try {
-        // Basic HTML parsing - extract text content
-        // Remove HTML tags and get plain text
-        const textContent = html
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // Remove styles
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove scripts
-          .replace(/<[^>]+>/g, '\n') // Replace tags with newlines
-          .replace(/\n\s+/g, '\n') // Clean up whitespace
-          .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
-          .trim();
-
-        // Split into lines and add to PDF
-        const lines = textContent.split('\n');
-
-        doc.fontSize(16).text('Document', { align: 'center' });
-        doc.moveDown();
-
-        for (const line of lines) {
-          if (line.trim()) {
-            // Check if line looks like a header
-            if (
-              line.length < 50 &&
-              !line.includes('.') &&
-              !line.includes(',')
-            ) {
-              doc.fontSize(14).text(line.trim(), { underline: true });
-              doc.moveDown(0.5);
-            } else {
-              doc.fontSize(10).text(line.trim());
-              doc.moveDown(0.3);
-            }
-          } else {
-            doc.moveDown(0.5);
-          }
+      pdf.create(html, defaultOptions).toBuffer((err: any, buffer: Buffer) => {
+        if (err) {
+          reject(
+            new Error(`PDF generation failed: ${err.message || String(err)}`),
+          );
+        } else {
+          resolve(buffer);
         }
-
-        doc.end();
-      } catch (error) {
-        reject(error);
-      }
+      });
     });
+  }
+
+  /**
+   * Create PDF from HTML template file
+   * More efficient for repeated PDF generation with templates
+   */
+  async createPDFFromTemplate(
+    templatePath: string,
+    data: any,
+    options?: pdf.CreateOptions,
+  ): Promise<Buffer> {
+    try {
+      // Read template file
+      const templateContent = await fs.promises.readFile(templatePath, 'utf-8');
+
+      // Simple template variable replacement
+      let html = templateContent;
+      for (const [key, value] of Object.entries(data)) {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        html = html.replace(regex, String(value));
+      }
+
+      return this.createPDF(html, options);
+    } catch (error: any) {
+      throw new Error(
+        `PDF template generation failed: ${error.message || String(error)}`,
+      );
+    }
   }
 
   async create(

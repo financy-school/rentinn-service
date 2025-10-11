@@ -1,8 +1,15 @@
-.PHONY: help build run stop clean logs shell test
+.PHONY: help build run stop clean logs shell test deploy deploy-quick status
+
+# SSH Configuration
+SSH_KEY := terraform/test.pem
+EC2_HOST := 3.7.125.170
+EC2_USER := ubuntu
 
 # Default target
 help:
 	@echo "Available commands:"
+	@echo ""
+	@echo "Local Development:"
 	@echo "  make build       - Build Docker image"
 	@echo "  make run         - Run container with docker-compose"
 	@echo "  make start       - Start existing containers"
@@ -15,6 +22,15 @@ help:
 	@echo "  make dev         - Run in development mode"
 	@echo "  make ps          - List running containers"
 	@echo "  make rebuild     - Rebuild and restart containers"
+	@echo ""
+	@echo "Production Deployment:"
+	@echo "  make deploy      - Full deployment (commit, push, deploy)"
+	@echo "  make deploy-quick - Quick deploy (skip rebuild if no deps changed)"
+	@echo "  make deploy-only - Deploy without committing (use existing code)"
+	@echo "  make status      - Check production server status"
+	@echo "  make logs-prod   - View production logs"
+	@echo "  make restart-prod - Restart production container"
+	@echo "  make ssh         - SSH into production server"
 
 # Build Docker image
 build:
@@ -80,6 +96,93 @@ rebuild:
 
 # Development mode (with watch)
 dev:
+	@echo "Starting development mode..."
+	docker-compose up
+
+# ========================================
+# Production Deployment Commands
+# ========================================
+
+# Full deployment: commit, push, and deploy
+deploy:
+	@echo "🚀 Starting full deployment..."
+	@./deploy-local.sh
+
+# Quick deployment using the deploy script
+deploy-quick:
+	@echo "⚡ Quick deployment..."
+	@./deploy-local.sh "Quick deploy: $(shell date '+%Y-%m-%d %H:%M:%S')"
+
+# Deploy without committing (assumes code is already pushed)
+deploy-only:
+	@echo "🌐 Deploying to production (no commit)..."
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST) '\
+		cd /home/ubuntu/rentinn-service && \
+		git pull origin main && \
+		docker-compose down && \
+		docker-compose up -d --build && \
+		echo "✅ Deployment complete" && \
+		docker logs rentinn-service --tail 20'
+
+# Check production server status
+status:
+	@echo "📊 Production Server Status"
+	@echo "=============================="
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST) '\
+		echo "🐳 Docker Containers:" && \
+		docker ps --filter name=rentinn-service --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" && \
+		echo "" && \
+		echo "🏥 Health Check:" && \
+		curl -s http://localhost:4200/health | jq . 2>/dev/null || curl -s http://localhost:4200/health && \
+		echo "" && \
+		echo "💾 Disk Usage:" && \
+		df -h / | grep -E "Filesystem|/$" && \
+		echo "" && \
+		echo "🧠 Memory Usage:" && \
+		free -h | grep -E "Mem|Swap" && \
+		echo "" && \
+		echo "📝 Recent Logs (last 10 lines):" && \
+		docker logs rentinn-service --tail 10'
+
+# View production logs
+logs-prod:
+	@echo "📝 Production Logs (press Ctrl+C to exit)"
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST) 'docker logs rentinn-service -f'
+
+# Restart production container
+restart-prod:
+	@echo "🔄 Restarting production container..."
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST) '\
+		cd /home/ubuntu/rentinn-service && \
+		docker-compose restart && \
+		sleep 5 && \
+		echo "✅ Container restarted" && \
+		docker logs rentinn-service --tail 20'
+
+# SSH into production server
+ssh:
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST)
+
+# Backup production database
+backup-db:
+	@echo "💾 Backing up production database..."
+	@ssh -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST) '\
+		mysqldump -u rentinn_user -p"RentInn@User2024" rentinn_db > ~/backup_$(date +%Y%m%d_%H%M%S).sql && \
+		echo "✅ Database backed up to ~/backup_$(date +%Y%m%d_%H%M%S).sql"'
+
+# Download production .env file
+download-env:
+	@echo "📥 Downloading production .env..."
+	@scp -i $(SSH_KEY) $(EC2_USER)@$(EC2_HOST):/home/ubuntu/rentinn-service/.env .env.production
+	@echo "✅ Downloaded to .env.production"
+
+# Upload .env to production (BE CAREFUL!)
+upload-env:
+	@echo "⚠️  Uploading .env to production..."
+	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ] || exit 1
+	@scp -i $(SSH_KEY) .env $(EC2_USER)@$(EC2_HOST):/home/ubuntu/rentinn-service/.env
+	@echo "✅ Uploaded .env file"
+	@echo "🔄 Restart container with: make restart-prod"
 	docker-compose -f docker-compose.dev.yml up
 
 # Check health
