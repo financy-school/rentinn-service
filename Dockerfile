@@ -48,6 +48,9 @@ COPY package*.json ./
 # Install ONLY production dependencies
 RUN npm ci --only=production --prefer-offline --no-audit
 
+# Ensure PhantomJS binary is executable and properly installed
+RUN cd node_modules/phantomjs-prebuilt && npm run install
+
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 

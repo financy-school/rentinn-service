@@ -118,6 +118,10 @@ export class DocumentsService {
    */
   async createPDF(html: string, options?: pdf.CreateOptions): Promise<Buffer> {
     return new Promise((resolve, reject) => {
+      // Get PhantomJS path from node_modules
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const phantomPath = require('phantomjs-prebuilt').path;
+
       // Default options for better PDF generation
       const defaultOptions: pdf.CreateOptions = {
         format: 'A4',
@@ -134,6 +138,7 @@ export class DocumentsService {
           height: '15mm',
         },
         timeout: 30000, // 30 second timeout
+        phantomPath: phantomPath, // Explicitly set PhantomJS binary path
         ...options,
       };
 
