@@ -19,6 +19,9 @@ import { PaymentStatus } from '../common/enums/payment-status.enum';
 import { KycService } from '../kyc/kyc.service';
 import { v7 as uuidv7 } from 'uuid';
 import { NotificationService } from '../client/notification/notification.service';
+import { DocumentsService } from '../documents/documents.service';
+import * as ejs from 'ejs';
+import * as path from 'path';
 
 @Injectable()
 export class RentalsService {
@@ -32,6 +35,7 @@ export class RentalsService {
     private readonly kycService: KycService,
     private readonly dataSource: DataSource,
     private readonly notificationService: NotificationService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   /**
@@ -89,6 +93,66 @@ export class RentalsService {
       const savedRental = await queryRunner.manager.save(newRental);
 
       await queryRunner.commitTransaction();
+
+      // Generate rental agreement PDF and upload to S3 (best-effort)
+      try {
+        // load tenant and property/room details for the PDF
+        const rentalWithRelations = await this.rentalRepository.findOne({
+          where: { rental_id: savedRental.rental_id },
+          relations: ['tenant', 'room', 'room.property'],
+        });
+
+        const property = rentalWithRelations?.room?.property;
+
+        // Create PDF buffer from template
+        const templatePath = path.join(
+          __dirname,
+          '../../templates/rental-agreement.ejs',
+        );
+        const html = await ejs.renderFile(
+          templatePath,
+          {
+            tenant: rentalWithRelations?.tenant,
+            property,
+            room: rentalWithRelations?.room,
+            rental: rentalWithRelations,
+          },
+          { async: true },
+        );
+
+        const options = {
+          childProcessOptions: {
+            env: {
+              OPENSSL_CONF: '/dev/null',
+            },
+          },
+          width: '210mm',
+          height: '297mm',
+          header: {
+            height: '40mm',
+          },
+        };
+
+        const buffer = await this.documentsService.createPDF(html, options);
+
+        // Upload PDF buffer and create document record
+        const { document } = await this.documentsService.uploadPdfBuffer(
+          buffer,
+          `${savedRental.rental_id}_rental_agreement.pdf`,
+          savedRental.property_id,
+          'Rental Agreement',
+          'rental_agreement',
+          60 * 60 * 24 * 30, // 30 days
+        );
+
+        await queryRunner.manager.update(
+          Rental,
+          { rental_id: savedRental.rental_id },
+          {
+            rental_document_id: document.document_id,
+          },
+        );
+      } catch (err) {}
 
       return savedRental;
     } catch (error) {

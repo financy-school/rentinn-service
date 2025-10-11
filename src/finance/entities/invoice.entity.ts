@@ -50,6 +50,12 @@ export class Invoice {
   due_date: Date;
 
   @Column({ nullable: true, default: null })
+  payment_date: Date;
+
+  @Column({ nullable: true, default: null, type: 'varchar', length: 100 })
+  invoice_document_id: string;
+
+  @Column({ nullable: true, default: null })
   issue_date: Date;
 
   @Column({ nullable: true, type: 'text' })

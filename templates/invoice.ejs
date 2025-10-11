@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; font-size: 24px; margin-bottom: 20px; }
+        .details { margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .total { font-weight: bold; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="header">Invoice</div>
+    <div class="details">
+        <p><strong>Invoice Number:</strong> <%= invoice.invoice_number || invoice.invoice_id %></p>
+        <p><strong>Issue Date:</strong> <%= invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : '' %></p>
+        <p><strong>Due Date:</strong> <%= invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '' %></p>
+        <% if (invoice.tenant) { %>
+            <p><strong>Bill To:</strong> <%= invoice.tenant.name %></p>
+            <p><strong>Email:</strong> <%= invoice.tenant.email || '' %></p>
+        <% } %>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% (invoice.items || []).forEach(item => { %>
+                <tr>
+                    <td><%= item.description || item.category %></td>
+                    <td><%= item.quantity || 1 %></td>
+                    <td><%= item.amount %></td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+    <div class="total">
+        <p>Total Amount: <%= invoice.total_amount || invoice.totalAmount || 0 %></p>
+    </div>
+</body>
+</html>

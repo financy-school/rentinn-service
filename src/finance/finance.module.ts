@@ -13,6 +13,7 @@ import { User } from '../users/entities/user.entity';
 import { Tenant } from '../tenant/entities/tenant.entity';
 import { NotificationModule } from '../client/notification/notification.module';
 import { PropertiesModule } from '../properties/properties.module';
+import { DocumentsModule } from '../documents/documents.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PropertiesModule } from '../properties/properties.module';
       Tenant,
     ]),
     NotificationModule,
+    DocumentsModule,
     PropertiesModule,
   ],
   controllers: [FinanceController, InvoiceController],

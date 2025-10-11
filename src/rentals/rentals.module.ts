@@ -7,6 +7,7 @@ import { Payment } from './entities/payment.entity';
 import { PropertiesModule } from '../properties/properties.module';
 import { KycModule } from '../kyc/kyc.module';
 import { NotificationModule } from '../client/notification/notification.module';
+import { DocumentsModule } from '../documents/documents.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { NotificationModule } from '../client/notification/notification.module';
     PropertiesModule,
     KycModule,
     NotificationModule,
+    DocumentsModule,
   ],
   controllers: [RentalsController],
   providers: [RentalsService],

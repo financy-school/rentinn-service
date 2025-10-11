@@ -42,6 +42,9 @@ export class Rental {
   @Column({ nullable: true })
   leaseDocumentUrl: string;
 
+  @Column({ nullable: true, default: null, type: 'varchar', length: 100 })
+  rental_document_id: string;
+
   @Column({ nullable: true })
   notes: string;
 

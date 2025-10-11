@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Agreement</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; font-size: 24px; margin-bottom: 20px; }
+        .details { margin-bottom: 20px; }
+        .terms { margin-top: 20px; }
+        .signature { margin-top: 40px; border-top: 1px solid #000; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">Rental Agreement</div>
+    <div class="details">
+        <p><strong>Tenant:</strong> <%= tenant?.name || '' %></p>
+        <p><strong>Email:</strong> <%= tenant?.email || '' %></p>
+        <p><strong>Property:</strong> <%= property?.address || property?.name || '' %></p>
+        <% if (room) { %>
+            <p><strong>Room:</strong> <%= room?.name || room?.room_id || '' %></p>
+        <% } %>
+        <p><strong>Start Date:</strong> <%= rental?.startDate ? new Date(rental.startDate).toLocaleDateString() : '' %></p>
+        <p><strong>End Date:</strong> <%= rental?.endDate ? new Date(rental.endDate).toLocaleDateString() : '' %></p>
+        <p><strong>Rent Amount:</strong> <%= rental?.rentAmount || 0 %></p>
+    </div>
+    <div class="terms">
+        <h3>Terms and Conditions</h3>
+        <p>1. Rent will be paid on time.</p>
+        <p>2. Security deposit to be held by landlord.</p>
+        <p>3. No subletting without permission.</p>
+        <!-- Add more terms as needed -->
+    </div>
+    <div class="signature">
+        <p>Signature: ______________________</p>
+        <p>Date: ______________________</p>
+    </div>
+</body>
+</html>

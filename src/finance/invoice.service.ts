@@ -18,9 +18,12 @@ import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { RecordPaymentDto } from './dto/record-payment.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PaginationResponse } from '../common/interfaces/pagination-response.interface';
+import * as ejs from 'ejs';
+import * as path from 'path';
 import { UserRole } from '../common/enums/user-role.enum';
 import { v7 as uuidv7 } from 'uuid';
 import { NotificationService } from '../client/notification/notification.service';
+import { DocumentsService } from '../documents/documents.service';
 import { PropertiesService } from '../properties/properties.service';
 
 @Injectable()
@@ -42,6 +45,7 @@ export class InvoiceService {
     private readonly tenantRepository: Repository<Tenant>,
     private readonly notificationService: NotificationService,
     private readonly propertiesService: PropertiesService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   /**
@@ -121,6 +125,53 @@ export class InvoiceService {
     );
 
     await this.invoiceItemRepository.save(items);
+
+    // Generate PDF and upload to S3 (best-effort)
+    try {
+      const invoiceWithRelations = await this.findInvoiceById(
+        savedInvoice.invoice_id,
+      );
+
+      // Create PDF buffer from template
+      const templatePath = path.join(__dirname, '../../templates/invoice.ejs');
+      const html = await ejs.renderFile(
+        templatePath,
+        { invoice: invoiceWithRelations },
+        { async: true },
+      );
+
+      const options = {
+        childProcessOptions: {
+          env: {
+            OPENSSL_CONF: '/dev/null',
+          },
+        },
+        width: '210mm',
+        height: '297mm',
+        header: {
+          height: '40mm',
+        },
+      };
+
+      const buffer = await this.documentsService.createPDF(html, options);
+
+      // Upload PDF buffer and create document record
+      const { document } = await this.documentsService.uploadPdfBuffer(
+        buffer,
+        `${savedInvoice.invoice_id}.pdf`,
+        savedInvoice.property_id || null,
+        'Invoice PDF',
+        'invoice',
+        60 * 60 * 24 * 7,
+      );
+
+      savedInvoice.notes = `${savedInvoice.notes || ''}\nInvoice PDF: ${tenant.name}`;
+      savedInvoice.invoice_document_id = document.document_id;
+      await this.invoiceRepository.save(savedInvoice);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to generate/upload invoice PDF: ' + errMsg);
+    }
 
     return this.findInvoiceById(savedInvoice.invoice_id);
   }

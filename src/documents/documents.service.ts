@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class DocumentsService {
@@ -67,6 +68,84 @@ export class DocumentsService {
 
     AWS.config.region = this.config.get(`AWS_DOCS_REGION`);
     this.s3_client = new AWS.S3({ signatureVersion: 'v4' });
+  }
+
+  /**
+   * Upload PDF buffer to S3 and create document record
+   */
+  async uploadPdfBuffer(
+    buffer: Buffer,
+    fileName: string,
+    propertyId: string,
+    descriptor: string,
+    docType: string,
+    expireIn: number = 60 * 60 * 24 * 7, // 7 days default
+  ): Promise<{ url: string; key: string; document: DocumentEntity }> {
+    const key = `${docType}/${fileName}`;
+
+    await this.s3_client
+      .putObject({
+        Bucket: this.org_docs_bucket_name,
+        Key: key,
+        Body: buffer,
+        ContentType: 'application/pdf',
+      })
+      .promise();
+
+    const url = await this.fetchS3DownloadPath({
+      document_path: key,
+      expire_in: expireIn,
+    });
+
+    // Create document record
+    const document = await this.create(propertyId, {
+      file_type: 'application/pdf',
+      file_name: `${fileName}`,
+      descriptor,
+      is_signature_required: docType === 'rental_agreement',
+      is_signed: false,
+      doc_type: docType,
+      download_url: url,
+    });
+
+    return { url, key, document };
+  }
+
+  /**
+   * Create PDF buffer from HTML using Puppeteer
+   */
+  async createPDF(html: string, options: any): Promise<Buffer> {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      ...options.childProcessOptions,
+    });
+    const page = await browser.newPage();
+    await page.setContent(html);
+
+    const pdfOptions: any = {
+      format: 'A4',
+      printBackground: true,
+    };
+
+    if (options.width && options.height) {
+      pdfOptions.width = options.width;
+      pdfOptions.height = options.height;
+    }
+
+    if (options.header?.height) {
+      pdfOptions.margin = {
+        top: options.header.height,
+        right: '20mm',
+        bottom: '20mm',
+        left: '20mm',
+      };
+    }
+
+    const buffer = Buffer.from(await page.pdf(pdfOptions));
+    await browser.close();
+
+    return buffer;
   }
 
   async create(
