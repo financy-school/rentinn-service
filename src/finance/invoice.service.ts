@@ -171,7 +171,9 @@ export class InvoiceService {
       await this.invoiceRepository.save(savedInvoice);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      this.logger.warn('Failed to generate/upload invoice PDF: ' + errMsg);
+      this.logger.warn(
+        'Failed to generate/upload invoice PDF with error: ' + errMsg,
+      );
     }
 
     return this.findInvoiceById(savedInvoice.invoice_id);
