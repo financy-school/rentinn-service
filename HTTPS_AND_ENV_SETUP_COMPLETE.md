@@ -13,17 +13,20 @@ Successfully configured HTTPS/SSL with Let's Encrypt and updated all environment
 ### 1. HTTPS/SSL Setup ✅
 
 **SSL Certificate Obtained:**
+
 - ✅ Let's Encrypt certificate installed for `rentalinn.ddns.net`
 - ✅ Certificate expires: January 9, 2026
 - ✅ Auto-renewal configured via Certbot
 - ✅ HTTP automatically redirects to HTTPS
 
 **Access URLs:**
+
 - 🔒 **HTTPS (Primary):** https://rentalinn.ddns.net
 - 🔓 **HTTP (Redirects):** http://rentalinn.ddns.net → HTTPS
 - ✅ **Health Check:** https://rentalinn.ddns.net/health
 
 **Certificate Details:**
+
 ```
 Certificate: /etc/letsencrypt/live/rentalinn.ddns.net/fullchain.pem
 Private Key: /etc/letsencrypt/live/rentalinn.ddns.net/privkey.pem
@@ -36,6 +39,7 @@ Auto-renewal: Enabled (Certbot scheduled task)
 **All Environment Variables Now Included:**
 
 #### Database Configuration
+
 ```bash
 DB_HOST=host.docker.internal
 DB_PORT=3306
@@ -46,6 +50,7 @@ DB_DATABASE=rentinn_db
 ```
 
 #### Application Configuration
+
 ```bash
 PORT=4200
 SERVICE_PORT=4200
@@ -54,12 +59,14 @@ NODE_ENV=production
 ```
 
 #### JWT Configuration
+
 ```bash
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-RentInn2024
 JWT_EXPIRATION=7d
 ```
 
 #### AWS Documents Configuration
+
 ```bash
 AWS_DOCS_REGION=ap-south-1
 AWS_DOCS_ACCESS_KEY=AKIA***************  # Hidden for security
@@ -68,6 +75,7 @@ DOCS_BUCKET_NAME=rentalinn-documents
 ```
 
 #### AWS General Configuration
+
 ```bash
 AWS_REGION=ap-south-1
 AWS_ACCESS_KEY_ID=AKIA***************  # Hidden for security
@@ -76,6 +84,7 @@ AWS_BUCKET_NAME=rentalinn-documents
 ```
 
 #### Email Configuration (Gmail SMTP)
+
 ```bash
 EMAIL_FROM=sumitgupta4535@gmail.com
 SMTP_HOST=smtp.gmail.com
@@ -87,16 +96,19 @@ EMAIL_SENDING_ENABLED=true
 ```
 
 #### Push Notifications
+
 ```bash
 PUSH_NOTIFICATION_ENABLED=true
 ```
 
 #### Firebase Configuration
+
 ```bash
 FIREBASE_SERVICE_ACCOUNT_PATH=config/firebase/firebase-adminsdk.json
 ```
 
 #### Master DB Sync
+
 ```bash
 MASTER_DB_SYNC=true
 ```
@@ -104,6 +116,7 @@ MASTER_DB_SYNC=true
 ### 3. Updated Files and Scripts ✅
 
 **docker-compose.yml**
+
 - Added all environment variable mappings
 - Email configuration included
 - AWS documents configuration included
@@ -151,6 +164,7 @@ MASTER_DB_SYNC=true
 ### 4. Application Status ✅
 
 **Container Status:**
+
 ```
 ✅ Container: rentinn-service - Running
 ✅ NestJS: All modules initialized
@@ -162,6 +176,7 @@ MASTER_DB_SYNC=true
 ```
 
 **Verified Functionality:**
+
 - ✅ HTTPS working: `https://rentalinn.ddns.net/health` → `{"status":"ok","message":"Service is running"}`
 - ✅ HTTP redirects to HTTPS: `http://rentalinn.ddns.net` → `https://rentalinn.ddns.net`
 - ✅ Email transporter initialized and ready
@@ -173,33 +188,39 @@ MASTER_DB_SYNC=true
 ## 📋 Testing & Verification
 
 ### Test HTTPS
+
 ```bash
 curl https://rentalinn.ddns.net/health
 # Expected: {"status":"ok","message":"Service is running"}
 ```
 
 ### Test HTTP Redirect
+
 ```bash
 curl -I http://rentalinn.ddns.net
 # Expected: 301 Moved Permanently → HTTPS
 ```
 
 ### Check SSL Certificate
+
 ```bash
 openssl s_client -connect rentalinn.ddns.net:443 -servername rentalinn.ddns.net < /dev/null 2>/dev/null | openssl x509 -noout -dates
 ```
 
 ### View Environment Variables
+
 ```bash
 ssh -i terraform/test.pem ubuntu@3.7.125.170 "docker exec rentinn-service env | grep -E '(DB_|EMAIL_|SMTP_|AWS_)' | sort"
 ```
 
 ### Check Email Configuration
+
 ```bash
 ssh -i terraform/test.pem ubuntu@3.7.125.170 "docker exec rentinn-service env | grep SMTP"
 ```
 
 ### View Container Logs
+
 ```bash
 ssh -i terraform/test.pem ubuntu@3.7.125.170 "docker logs rentinn-service -f"
 ```
@@ -301,6 +322,7 @@ master_db_sync = true
 ```
 
 Then deploy:
+
 ```bash
 cd terraform
 terraform init
@@ -313,18 +335,22 @@ terraform apply
 ## 🔒 Security Notes
 
 ### SSL Certificate
+
 - ✅ Valid until: January 9, 2026
 - ✅ Auto-renewal configured
 - ⚠️ Monitor renewal: `sudo certbot renew --dry-run`
 
 ### Sensitive Data in .env
+
 ⚠️ **The .env file contains sensitive credentials:**
+
 - Database passwords
 - AWS access keys
 - SMTP passwords
 - JWT secrets
 
 **Recommendations:**
+
 1. **Never commit .env to Git** (already in .gitignore)
 2. **Use AWS Secrets Manager** or Parameter Store for production
 3. **Rotate credentials regularly**
@@ -333,7 +359,9 @@ terraform apply
 6. **Use app-specific passwords** for Gmail SMTP
 
 ### Gmail SMTP Security
+
 The SMTP password shown is an app-specific password. To generate a new one:
+
 1. Go to Google Account → Security
 2. Enable 2-Step Verification
 3. Generate App Password for "Mail"
@@ -344,6 +372,7 @@ The SMTP password shown is an app-specific password. To generate a new one:
 ## 📊 Current Infrastructure
 
 **Server Details:**
+
 - **IP Address:** 3.7.125.170
 - **Domain:** rentalinn.ddns.net
 - **Instance ID:** i-05f470c5686328dd3
@@ -352,11 +381,13 @@ The SMTP password shown is an app-specific password. To generate a new one:
 - **OS:** Ubuntu 22.04
 
 **Services Running:**
+
 - **Docker Container:** rentinn-service (Port 4200)
 - **MySQL:** 8.0.43 (Port 3306)
 - **Nginx:** 1.18.0 (Ports 80, 443)
 
 **Storage:**
+
 - **S3 Bucket:** rentalinn-documents (ap-south-1)
 - **Database:** rentinn_db
 - **Docker Volume:** MySQL data
@@ -385,6 +416,7 @@ The SMTP password shown is an app-specific password. To generate a new one:
 ## 🎯 Next Steps
 
 ### Immediate Actions:
+
 1. ✅ **Test email sending** - Send a test email from the application
 2. ✅ **Verify AWS S3 access** - Upload a test document
 3. ⚠️ **Rotate JWT secret** - Generate a strong random secret
@@ -392,6 +424,7 @@ The SMTP password shown is an app-specific password. To generate a new one:
 5. ⚠️ **Backup database** - Setup automated backups
 
 ### Future Enhancements:
+
 - [ ] Move secrets to AWS Secrets Manager
 - [ ] Setup CloudWatch alarms
 - [ ] Configure automated database backups
@@ -404,6 +437,7 @@ The SMTP password shown is an app-specific password. To generate a new one:
 ## 📞 Support & Troubleshooting
 
 ### If HTTPS stops working:
+
 ```bash
 # Check certificate expiration
 sudo certbot certificates
@@ -416,6 +450,7 @@ sudo systemctl restart nginx
 ```
 
 ### If email sending fails:
+
 ```bash
 # Check SMTP configuration
 docker exec rentinn-service env | grep SMTP
@@ -437,6 +472,7 @@ transporter.verify().then(console.log).catch(console.error);
 ```
 
 ### If container won't start:
+
 ```bash
 # Check logs
 docker logs rentinn-service --tail 100
@@ -455,6 +491,7 @@ docker-compose up -d --build
 ## 📝 Git Commits
 
 **Latest Commit:** `5e07b0a`
+
 - Added comprehensive environment variable support
 - Configured HTTPS/SSL with Let's Encrypt
 - Created new deployment scripts
@@ -468,6 +505,7 @@ docker-compose up -d --build
 **Setup Complete! 🎉**
 
 Your RentInn service is now fully configured with:
+
 - ✅ HTTPS/SSL encryption
 - ✅ Complete environment variables
 - ✅ Email functionality
@@ -479,4 +517,4 @@ Your RentInn service is now fully configured with:
 
 ---
 
-*Last Updated: October 11, 2025*
+_Last Updated: October 11, 2025_
