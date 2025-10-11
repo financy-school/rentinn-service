@@ -43,8 +43,8 @@ COPY --from=builder /app/dist ./dist
 # Copy templates directory (needed for PDF generation)
 COPY --from=builder /app/templates ./templates
 
-# Copy config directory (for Firebase admin SDK and other configs)
-COPY --from=builder /app/config ./config
+# Create config directory for runtime (Firebase credentials should be mounted as volume)
+RUN mkdir -p /app/config/firebase
 
 # Change ownership to non-root user
 RUN chown -R nestjs:nodejs /app
