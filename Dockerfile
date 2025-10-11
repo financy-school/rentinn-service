@@ -18,9 +18,6 @@ COPY . .
 ENV NODE_OPTIONS="--max-old-space-size=1536"
 RUN npm run build
 
-# Remove dev dependencies
-RUN npm prune --production
-
 # Stage 2: Production Stage
 FROM node:18-alpine AS production
 
@@ -34,8 +31,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy package files
 COPY package*.json ./
 
-# Copy production dependencies from builder
-COPY --from=builder /app/node_modules ./node_modules
+# Install ONLY production dependencies
+RUN npm ci --only=production --prefer-offline --no-audit
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
