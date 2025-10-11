@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     wget \
     ca-certificates \
+    bzip2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
