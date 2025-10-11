@@ -13,7 +13,8 @@ RUN npm ci
 # Copy source code and configuration files
 COPY . .
 
-# Build the application
+# Build the application with increased memory
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # Remove dev dependencies
