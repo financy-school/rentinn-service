@@ -133,7 +133,9 @@ export class DocumentsService {
       pdf.create(html, defaultOptions).toBuffer((err: any, buffer: Buffer) => {
         if (err) {
           reject(
-            new Error(`PDF generation failed: ${err.message || String(err)}`),
+            new Error(
+              `PDF generation failed with error: ${err.message || String(err)}`,
+            ),
           );
         } else {
           resolve(buffer);
