@@ -30,6 +30,8 @@ services:
     volumes:
       # Mount config files if needed
       - ./config:/app/config:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - rentinn-network
     healthcheck:
