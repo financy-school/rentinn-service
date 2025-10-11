@@ -1,0 +1,27 @@
+# AWS Configuration
+aws_region     = "us-east-1"
+aws_access_key = "YOUR_AWS_ACCESS_KEY"
+aws_secret_key = "YOUR_AWS_SECRET_KEY"
+
+# EC2 Configuration
+instance_type = "t3.medium"  # Options: t3.small, t3.medium, t3.large, t3.xlarge
+key_name      = "your-key-pair-name"  # Your EC2 key pair name (without .pem)
+volume_size   = 30  # Root volume size in GB
+
+# GitHub Configuration
+github_repo_url = "https://github.com/financy-school/rentinn-service.git"
+github_token    = ""  # Leave empty for public repos, add token for private repos
+
+# Database Configuration
+db_password = "SecurePassword123!"  # Change this to a strong password
+db_name     = "rentinn_db"
+db_user     = "rentinn_user"
+
+# Application Configuration
+jwt_secret      = "your-super-secret-jwt-key-change-this"  # Change this!
+aws_bucket_name = ""  # Your S3 bucket name (if using S3)
+service_port    = 4200
+domain_name     = ""  # Optional: your-domain.com (leave empty if not using a domain)
+
+# Environment
+environment = "production"

@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rentinn-service
+    restart: unless-stopped
+    ports:
+      - "${SERVICE_PORT:-4200}:4200"
+    environment:
+      - NODE_ENV=production
+      - SERVICE_NAME=${SERVICE_NAME:-rentinn-service}
+      - SERVICE_PORT=4200
+      # Database
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      # AWS
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      # Add other environment variables as needed
+    volumes:
+      # Mount config files if needed
+      - ./config:/app/config:ro
+    networks:
+      - rentinn-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:4200/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})",
+        ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  # Optional: MySQL Database (if you want to run it locally)
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: rentinn-mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+  #     - MYSQL_DATABASE=${DB_NAME}
+  #     - MYSQL_USER=${DB_USERNAME}
+  #     - MYSQL_PASSWORD=${DB_PASSWORD}
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+  #   networks:
+  #     - rentinn-network
+
+networks:
+  rentinn-network:
+    driver: bridge
+# volumes:
+#   mysql-data:
