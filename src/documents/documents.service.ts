@@ -18,8 +18,9 @@ import { ConfigService } from '@nestjs/config';
 import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
-import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
+import * as path from 'path';
+const PDFDocument = require('pdfkit');
 
 @Injectable()
 export class DocumentsService {
@@ -113,91 +114,65 @@ export class DocumentsService {
   }
 
   /**
-   * Create PDF buffer from HTML using Puppeteer
+   * Create PDF buffer from HTML using PDFKit with basic HTML parsing
    */
   async createPDF(html: string, options: any): Promise<Buffer> {
-    // Try to find Chrome executable
-    let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50,
+        info: {
+          Title: 'Document',
+          Author: 'RentInn Service',
+        },
+      });
 
-    if (!executablePath) {
-      // Common Chrome paths on Linux
-      const possiblePaths = [
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/google-chrome',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/opt/google/chrome/chrome',
-      ];
+      const buffers: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
 
-      for (const path of possiblePaths) {
-        try {
-          if (fs.existsSync(path)) {
-            executablePath = path;
-            console.log(`Found Chrome executable at: ${path}`);
-            break;
+      try {
+        // Basic HTML parsing - extract text content
+        // Remove HTML tags and get plain text
+        const textContent = html
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '') // Remove styles
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove scripts
+          .replace(/<[^>]+>/g, '\n') // Replace tags with newlines
+          .replace(/\n\s+/g, '\n') // Clean up whitespace
+          .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
+          .trim();
+
+        // Split into lines and add to PDF
+        const lines = textContent.split('\n');
+
+        doc.fontSize(16).text('Document', { align: 'center' });
+        doc.moveDown();
+
+        for (const line of lines) {
+          if (line.trim()) {
+            // Check if line looks like a header
+            if (
+              line.length < 50 &&
+              !line.includes('.') &&
+              !line.includes(',')
+            ) {
+              doc.fontSize(14).text(line.trim(), { underline: true });
+              doc.moveDown(0.5);
+            } else {
+              doc.fontSize(10).text(line.trim());
+              doc.moveDown(0.3);
+            }
+          } else {
+            doc.moveDown(0.5);
           }
-        } catch (error) {
-          // Continue checking other paths
         }
+
+        doc.end();
+      } catch (error) {
+        reject(error);
       }
-
-      if (!executablePath) {
-        console.warn(
-          'No Chrome executable found. Please install Google Chrome or set PUPPETEER_EXECUTABLE_PATH environment variable.',
-        );
-        console.warn('Checked paths:', possiblePaths);
-      }
-    }
-
-    console.log(
-      `Using Chrome executable: ${executablePath || 'default (bundled)'}`,
-    );
-
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--disable-default-apps',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-images', // Optional: speed up PDF generation
-      ],
-      executablePath,
-      ...options.childProcessOptions,
     });
-    const page = await browser.newPage();
-    await page.setContent(html);
-
-    const pdfOptions: any = {
-      format: 'A4',
-      printBackground: true,
-    };
-
-    if (options.width && options.height) {
-      pdfOptions.width = options.width;
-      pdfOptions.height = options.height;
-    }
-
-    if (options.header?.height) {
-      pdfOptions.margin = {
-        top: options.header.height,
-        right: '20mm',
-        bottom: '20mm',
-        left: '20mm',
-      };
-    }
-
-    const buffer = Buffer.from(await page.pdf(pdfOptions));
-    await browser.close();
-
-    return buffer;
   }
 
   async create(

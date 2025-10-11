@@ -6,7 +6,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "install": "PUPPETEER_SKIP_DOWNLOAD=true npm install",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -46,8 +45,7 @@
     "mysql2": "^3.9.6",
     "nodemailer": "^7.0.9",
     "passport-jwt": "^4.0.1",
-    "pdfkit": "^0.13.0",
-    "puppeteer": "^23.11.1",
+    "html-pdf": "^3.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "source-map-support": "^0.5.21",
