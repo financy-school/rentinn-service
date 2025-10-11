@@ -19,6 +19,7 @@ import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
 import * as puppeteer from 'puppeteer';
+import * as fs from 'fs';
 
 @Injectable()
 export class DocumentsService {
@@ -115,9 +116,60 @@ export class DocumentsService {
    * Create PDF buffer from HTML using Puppeteer
    */
   async createPDF(html: string, options: any): Promise<Buffer> {
+    // Try to find Chrome executable
+    let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+
+    if (!executablePath) {
+      // Common Chrome paths on Linux
+      const possiblePaths = [
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/google-chrome',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/opt/google/chrome/chrome',
+      ];
+
+      for (const path of possiblePaths) {
+        try {
+          if (fs.existsSync(path)) {
+            executablePath = path;
+            console.log(`Found Chrome executable at: ${path}`);
+            break;
+          }
+        } catch (error) {
+          // Continue checking other paths
+        }
+      }
+
+      if (!executablePath) {
+        console.warn(
+          'No Chrome executable found. Please install Google Chrome or set PUPPETEER_EXECUTABLE_PATH environment variable.',
+        );
+        console.warn('Checked paths:', possiblePaths);
+      }
+    }
+
+    console.log(
+      `Using Chrome executable: ${executablePath || 'default (bundled)'}`,
+    );
+
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--disable-default-apps',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--disable-images', // Optional: speed up PDF generation
+      ],
+      executablePath,
       ...options.childProcessOptions,
     });
     const page = await browser.newPage();
