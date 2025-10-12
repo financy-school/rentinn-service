@@ -335,6 +335,7 @@ export class InvoiceService {
       invoice_id: invoice.invoice_id,
       recordedBy: userId,
       isLatePayment: new Date() > new Date(invoice.due_date),
+      property_id: invoice.property_id,
     });
 
     const savedPayment = await this.paymentRepository.save(payment);
