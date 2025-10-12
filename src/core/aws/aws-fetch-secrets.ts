@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 //Function to fetch all fields of a Secret and store them in process.env
 export async function fetchAwsSecrets(): Promise<Record<string, any>> {
   try {
-    let client = new AWS.SecretsManager({
+    const client = new AWS.SecretsManager({
       region: process.env.AWS_SECRET_REGION,
     });
     const secret = await client

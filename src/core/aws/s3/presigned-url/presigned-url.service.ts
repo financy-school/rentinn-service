@@ -37,7 +37,7 @@ export class PresignedUrlService {
     }
     console.log(key);
 
-    var presignedUPLOADURL = await this.S3.getSignedUrlPromise('putObject', {
+    const presignedUPLOADURL = await this.S3.getSignedUrlPromise('putObject', {
       Bucket: this.bucketName,
       ContentType: fileType,
       Key: key,
@@ -48,11 +48,14 @@ export class PresignedUrlService {
   }
 
   async downloadUrl(id: string = '', fileKey: string) {
-    var presignedDownloadURL = await this.S3.getSignedUrlPromise('getObject', {
-      Bucket: this.bucketName,
-      Key: fileKey, //filename
-      Expires: 1000, //time to expire in seconds
-    });
+    const presignedDownloadURL = await this.S3.getSignedUrlPromise(
+      'getObject',
+      {
+        Bucket: this.bucketName,
+        Key: fileKey,
+        Expires: 1000,
+      },
+    );
     return presignedDownloadURL;
   }
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomHttpServiceController } from './custom-http-service.controller';
-import { CustomHttpServiceService } from './custom-http-service.service';
+import { CustomHttpService } from './custom-http-service.service';
 
 describe('CustomHttpServiceController', () => {
   let controller: CustomHttpServiceController;
@@ -8,10 +8,12 @@ describe('CustomHttpServiceController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CustomHttpServiceController],
-      providers: [CustomHttpServiceService],
+      providers: [CustomHttpService],
     }).compile();
 
-    controller = module.get<CustomHttpServiceController>(CustomHttpServiceController);
+    controller = module.get<CustomHttpServiceController>(
+      CustomHttpServiceController,
+    );
   });
 
   it('should be defined', () => {

@@ -116,8 +116,8 @@ const maskCriticalValueFromEnd = (
 const maskEmail = (email: string): Promise<string> =>
   new Promise<string>((resolve, reject) => {
     if (email) {
-      let [user_name, domain_name] = email.split('@');
-      let [host_name, top_level_domain] = domain_name.split('.');
+      const [user_name, domain_name] = email.split('@');
+      const [host_name, top_level_domain] = domain_name.split('.');
       let masked_user_name = '';
       let masked_host_name = '';
       if (user_name.length > 1) {
