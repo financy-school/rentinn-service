@@ -849,4 +849,219 @@ export class AnalyticsService {
         totalTenants > 0 ? (overdueTenants / totalTenants) * 100 : 0,
     };
   }
+
+  /**
+   * Get payment history with filtering and sorting
+   */
+  async getPaymentHistory(query: any, user: any) {
+    const {
+      propertyId,
+      searchQuery,
+      status = 'all',
+      category = 'all',
+      startDate,
+      endDate,
+      sortBy = 'date',
+      sortOrder = 'desc',
+    } = query;
+
+    const landlordId = user.user_id;
+
+    // Build query with relations
+    const queryBuilder = this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.tenant', 'tenant')
+      .leftJoinAndSelect('payment.rental', 'rental')
+      .leftJoinAndSelect('rental.room', 'room')
+      .leftJoinAndSelect('room.property', 'property')
+      .leftJoinAndSelect('payment.invoice', 'invoice')
+      .where('property.owner_id = :landlordId', { landlordId });
+
+    // Filter by property
+    if (propertyId && propertyId !== 'all') {
+      queryBuilder.andWhere('payment.property_id = :propertyId', {
+        propertyId,
+      });
+    }
+
+    // Filter by date range
+    if (startDate) {
+      queryBuilder.andWhere('payment.paymentDate >= :startDate', {
+        startDate: new Date(startDate),
+      });
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('payment.paymentDate <= :endDate', {
+        endDate: end,
+      });
+    }
+
+    const allPayments = await queryBuilder.getMany();
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    // Map to DTOs and calculate status
+    let payments = allPayments.map((payment) => {
+      // Determine category from invoice or rental
+      let paymentCategory = 'other';
+      if (payment.invoice) {
+        const desc = payment.invoice.description?.toLowerCase() || '';
+        if (desc.includes('rent')) {
+          paymentCategory = 'rent';
+        } else if (desc.includes('deposit') || desc.includes('security')) {
+          paymentCategory = 'deposit';
+        } else if (desc.includes('maintenance') || desc.includes('repair')) {
+          paymentCategory = 'maintenance';
+        } else if (
+          desc.includes('utility') ||
+          desc.includes('electric') ||
+          desc.includes('water')
+        ) {
+          paymentCategory = 'utility';
+        }
+      } else if (payment.rental) {
+        paymentCategory = 'rent';
+      }
+
+      // Determine status
+      let paymentStatus = 'paid';
+      if (payment.invoice && payment.invoice.status === InvoiceStatus.OVERDUE) {
+        paymentStatus = 'overdue';
+      } else if (
+        payment.invoice &&
+        payment.invoice.status !== InvoiceStatus.PAID &&
+        payment.invoice.status !== InvoiceStatus.CANCELLED
+      ) {
+        paymentStatus = 'pending';
+      }
+
+      const propertyName = payment.rental?.room?.property?.name || 'Unknown';
+      const roomName = payment.rental?.room?.name || '';
+
+      return {
+        id: payment.payment_id,
+        tenantId: payment.tenant_id || '',
+        tenantName: payment.tenant?.name || 'Unknown',
+        tenantPhone: payment.tenant?.phone_number || '',
+        propertyId: payment.property_id || '',
+        propertyName: propertyName + (roomName ? ` - ${roomName}` : ''),
+        amount: Number(payment.amount),
+        category: paymentCategory,
+        date: payment.paymentDate
+          ? payment.paymentDate.toISOString()
+          : payment.createdAt.toISOString(),
+        dueDate: payment.invoice?.due_date
+          ? payment.invoice.due_date.toISOString()
+          : '',
+        description: payment.invoice?.description || payment.notes || '',
+        status: paymentStatus,
+        paymentMethod: payment.paymentMethod || '',
+        transactionId: payment.transactionId || '',
+        receiptNumber: payment.invoice?.invoice_number || payment.payment_id,
+        receiptUrl: payment.receiptUrl || '',
+        notes: payment.notes || '',
+        isLatePayment: payment.isLatePayment || false,
+        lateFee: Number(payment.lateFee || 0),
+        createdAt: payment.createdAt.toISOString(),
+      };
+    });
+
+    // Filter by status
+    if (status !== 'all') {
+      payments = payments.filter((p) => p.status === status);
+    }
+
+    // Filter by category
+    if (category !== 'all') {
+      payments = payments.filter((p) => p.category === category);
+    }
+
+    // Filter by search query
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      payments = payments.filter(
+        (p) =>
+          p.tenantName.toLowerCase().includes(query) ||
+          p.propertyName.toLowerCase().includes(query) ||
+          p.receiptNumber.toLowerCase().includes(query) ||
+          p.description.toLowerCase().includes(query),
+      );
+    }
+
+    // Sort payments
+    payments.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case 'amount':
+          comparison = a.amount - b.amount;
+          break;
+        case 'tenant':
+          comparison = a.tenantName.localeCompare(b.tenantName);
+          break;
+        default:
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    // Calculate summary from all payments (before filtering)
+    const totalReceived = allPayments.reduce(
+      (sum, p) => sum + Number(p.amount),
+      0,
+    );
+
+    // Pending and overdue from invoices
+    const allInvoicesQuery = this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .leftJoin('invoice.rental', 'rental')
+      .leftJoin('rental.room', 'room')
+      .leftJoin('room.property', 'property')
+      .where('property.owner_id = :landlordId', { landlordId });
+
+    if (propertyId) {
+      allInvoicesQuery.andWhere('rental.property_id = :propertyId', {
+        propertyId,
+      });
+    }
+
+    const allInvoices = await allInvoicesQuery.getMany();
+
+    const pendingAmount = allInvoices
+      .filter(
+        (inv) =>
+          inv.status !== InvoiceStatus.PAID &&
+          inv.status !== InvoiceStatus.OVERDUE &&
+          inv.status !== InvoiceStatus.CANCELLED,
+      )
+      .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0);
+
+    const overdueAmount = allInvoices
+      .filter((inv) => inv.status === InvoiceStatus.OVERDUE)
+      .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0);
+
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisMonthReceived = allPayments
+      .filter((p) => p.paymentDate && new Date(p.paymentDate) >= thisMonthStart)
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+
+    return {
+      summary: {
+        totalReceived: Math.round(totalReceived),
+        pendingAmount: Math.round(pendingAmount),
+        overdueAmount: Math.round(overdueAmount),
+        thisMonthReceived: Math.round(thisMonthReceived),
+      },
+      payments,
+      total: payments.length,
+    };
+  }
 }

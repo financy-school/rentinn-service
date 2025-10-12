@@ -9,6 +9,7 @@ import {
   RevenueTrendsQueryDto,
   ProfitLossAnalyticsQueryDto,
 } from './dto/analytics-query.dto';
+import { PaymentHistoryQueryDto } from './dto/payment-history.dto';
 import { UserRole } from '../common/enums/user-role.enum';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -51,5 +52,14 @@ export class AnalyticsController {
     @Req() req: any,
   ) {
     return await this.analyticsService.getProfitLossAnalytics(query, req.user);
+  }
+
+  @Get('payment-history')
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  async getPaymentHistory(
+    @Query() query: PaymentHistoryQueryDto,
+    @Req() req: any,
+  ) {
+    return await this.analyticsService.getPaymentHistory(query, req.user);
   }
 }
