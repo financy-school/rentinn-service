@@ -4,13 +4,13 @@ import { DocumentsController } from './documents.controller';
 import { DocumentEntity } from './entities/document.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
+import { CustomHttpModule } from '../core/custom-http-service/custom-http-service.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([DocumentEntity]),
     ConfigModule,
-    HttpModule,
+    CustomHttpModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

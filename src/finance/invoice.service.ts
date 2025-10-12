@@ -103,6 +103,7 @@ export class InvoiceService {
       send_reminder: createInvoiceDto.sendReminder || false,
       tenant_id: createInvoiceDto.tenant_id,
       rental_id: createInvoiceDto.rental_id,
+      property_id: tenant.property_id,
     });
 
     const savedInvoice = await this.invoiceRepository.save(invoice);
@@ -161,7 +162,7 @@ export class InvoiceService {
       const document = await this.documentsService.uploadPdfBuffer(
         buffer,
         `${savedInvoice.invoice_id}.pdf`,
-        savedInvoice.property_id || null,
+        savedInvoice.property_id,
         'Invoice PDF',
         'invoice',
       );

@@ -19,8 +19,7 @@ import AWS from 'aws-sdk';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { addQueryFilterToSqlQuery } from '../core/helpers/sqlHelper/sqlHelper';
 import * as pdf from 'html-pdf';
-import { HttpService } from '@nestjs/axios';
-import { lastValueFrom } from 'rxjs';
+import { CustomHttpService } from '../core/custom-http-service/custom-http-service.service';
 
 @Injectable()
 export class DocumentsService {
@@ -49,7 +48,7 @@ export class DocumentsService {
     @InjectRepository(DocumentEntity)
     private readonly document_repository: Repository<DocumentEntity>,
     private readonly config: ConfigService,
-    private readonly http_service: HttpService,
+    private readonly http_service: CustomHttpService,
   ) {
     this.org_docs_bucket_name = this.config.get('DOCS_BUCKET_NAME');
 
@@ -97,7 +96,9 @@ export class DocumentsService {
       await this.uploadDocument(document.upload_url, buffer, 'application/pdf');
 
       return document;
-    } catch (error) {}
+    } catch (error) {
+      throw new Error('PDF upload failed');
+    }
   }
 
   /**
@@ -471,10 +472,11 @@ export class DocumentsService {
   }
 
   async uploadDocument(upload_url: string, buffer: Buffer, file_type: string) {
-    await lastValueFrom(
-      this.http_service.put(upload_url, buffer, {
-        headers: { 'Content-Type': file_type },
-      }),
-    );
+    const res = await this.http_service.put(upload_url, buffer, {
+      headers: {
+        'Content-Type': file_type,
+      },
+    });
+    return res;
   }
 }
