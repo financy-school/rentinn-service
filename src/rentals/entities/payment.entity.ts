@@ -67,7 +67,7 @@ export class Payment {
   tenant: Tenant;
 
   @Column({ nullable: true })
-  payment_tenant_id: string;
+  tenant_id: string;
 
   @CreateDateColumn()
   createdAt: Date;

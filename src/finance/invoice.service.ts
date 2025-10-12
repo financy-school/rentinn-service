@@ -336,6 +336,7 @@ export class InvoiceService {
       recordedBy: userId,
       isLatePayment: new Date() > new Date(invoice.due_date),
       property_id: invoice.property_id,
+      tenant_id: invoice.tenant_id,
     });
 
     const savedPayment = await this.paymentRepository.save(payment);
@@ -636,7 +637,7 @@ export class InvoiceService {
 
     // Calculate tenant's payment history summary
     const paymentHistory = await this.paymentRepository.find({
-      where: { payment_tenant_id: tenant.tenant_id },
+      where: { tenant_id: tenant.tenant_id },
       order: { createdAt: 'DESC' },
       take: 5,
     });

@@ -356,7 +356,7 @@ export class RentalsService {
     try {
       // Create the payment record
       const newPayment = this.paymentRepository.create({
-        payment_tenant_id: rental.tenant_id,
+        tenant_id: rental.tenant_id,
         amount: recordPaymentDto.amount,
         rental_id: rental.rental_id,
         property_id: rental.property_id,
