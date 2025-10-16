@@ -13,6 +13,7 @@ import { RentalsModule } from './rentals/rentals.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { DocumentsModule } from './documents/documents.module';
 import { SettingsModule } from './settings/settings.module';
+import { ExpensesModule } from './expenses/expenses.module';
 import * as Entities from './entities';
 
 @Module({
@@ -49,6 +50,9 @@ import * as Entities from './entities';
             Entities.UserSettings,
             Entities.Ticket,
             Entities.DocumentEntity,
+            Entities.Expense,
+            Entities.ExpensePayment,
+            Entities.ExpenseCategory,
           ],
           // synchronize: config.get('DB_SYNC'),
           synchronize: true,
@@ -66,6 +70,7 @@ import * as Entities from './entities';
     TicketsModule,
     DocumentsModule,
     SettingsModule,
+    ExpensesModule,
   ],
 })
 export class AppModule {}

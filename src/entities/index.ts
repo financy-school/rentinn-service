@@ -15,3 +15,6 @@ export { Rental } from '../rentals/entities/rental.entity';
 export { Invoice } from '../finance/entities/invoice.entity';
 export { InvoiceItem } from '../finance/entities/invoice-item.entity';
 export { Payment } from '../rentals/entities/payment.entity';
+export { Expense } from '../expenses/entities/expense.entity';
+export { ExpensePayment } from '../expenses/entities/expense-payment.entity';
+export { ExpenseCategory } from '../expenses/entities/expense-category.entity';

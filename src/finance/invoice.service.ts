@@ -104,6 +104,7 @@ export class InvoiceService {
       tenant_id: createInvoiceDto.tenant_id,
       rental_id: createInvoiceDto.rental_id,
       property_id: tenant.property_id,
+      room_id: tenant.room_id,
     });
 
     const savedInvoice = await this.invoiceRepository.save(invoice);
