@@ -3,38 +3,586 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rental Agreement</title>
+    <title>Rental Agreement - RentalInn</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { text-align: center; font-size: 24px; margin-bottom: 20px; }
-        .details { margin-bottom: 20px; }
-        .terms { margin-top: 20px; }
-        .signature { margin-top: 40px; border-top: 1px solid #000; padding-top: 20px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #212529;
+            background-color: #ffffff;
+            padding: 40px;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #001C68;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 32px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .document-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #EE7B11;
+            margin-top: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .document-subtitle {
+            font-size: 14px;
+            color: #6C757D;
+            margin-top: 10px;
+        }
+
+        /* Agreement Number */
+        .agreement-number {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 12px;
+            background: rgba(238, 123, 17, 0.08);
+            border-radius: 6px;
+        }
+
+        .agreement-number p {
+            font-size: 13px;
+            color: #001C68;
+            font-weight: 600;
+        }
+
+        /* Parties Section */
+        .parties-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border-left: 4px solid #EE7B11;
+        }
+
+        .parties-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .party-block {
+            margin-bottom: 25px;
+        }
+
+        .party-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .party-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #EE7B11;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .party-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 6px;
+        }
+
+        .party-detail {
+            font-size: 13px;
+            color: #212529;
+            margin-bottom: 4px;
+        }
+
+        .party-detail strong {
+            color: #6C757D;
+            font-weight: 600;
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        /* Property Details */
+        .property-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid rgba(238, 123, 17, 0.15);
+            border-radius: 8px;
+        }
+
+        .property-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .property-item {
+            padding: 12px;
+            background: rgba(238, 123, 17, 0.03);
+            border-radius: 6px;
+        }
+
+        .property-item-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6C757D;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .property-item-value {
+            font-size: 14px;
+            color: #001C68;
+            font-weight: 600;
+        }
+
+        /* Terms Section */
+        .terms-section {
+            margin-bottom: 40px;
+        }
+
+        .terms-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(238, 123, 17, 0.15);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .term-item {
+            margin-bottom: 20px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .term-number {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 24px;
+            height: 24px;
+            background: #EE7B11;
+            color: #FFFFFF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .term-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #001C68;
+            margin-bottom: 6px;
+        }
+
+        .term-content {
+            font-size: 13px;
+            color: #212529;
+            line-height: 1.7;
+        }
+
+        /* Financial Details */
+        .financial-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(0, 28, 104, 0.05) 0%, rgba(238, 123, 17, 0.05) 100%);
+            border-radius: 8px;
+        }
+
+        .financial-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .financial-item {
+            padding: 15px;
+            background: #FFFFFF;
+            border-radius: 6px;
+            border: 1px solid rgba(238, 123, 17, 0.15);
+        }
+
+        .financial-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6C757D;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .financial-value {
+            font-size: 20px;
+            color: #001C68;
+            font-weight: 700;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 2px solid rgba(238, 123, 17, 0.15);
+        }
+
+        .signature-section h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .signature-block {
+            text-align: center;
+        }
+
+        .signature-line {
+            border-bottom: 2px solid #001C68;
+            margin-bottom: 10px;
+            padding-bottom: 30px;
+        }
+
+        .signature-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #001C68;
+            margin-bottom: 8px;
+        }
+
+        .signature-name {
+            font-size: 14px;
+            color: #6C757D;
+        }
+
+        .date-block {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .date-label {
+            font-size: 12px;
+            color: #6C757D;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .date-line {
+            display: inline-block;
+            border-bottom: 2px solid #001C68;
+            width: 250px;
+            padding-bottom: 5px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(238, 123, 17, 0.1);
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 11px;
+            color: #6C757D;
+            margin-bottom: 5px;
+        }
+
+        .footer .brand {
+            color: #EE7B11;
+            font-weight: 600;
+        }
+
+        /* Important Notice */
+        .notice-box {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #FFC107;
+            border-radius: 4px;
+        }
+
+        .notice-box h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #001C68;
+            margin-bottom: 10px;
+        }
+
+        .notice-box p {
+            font-size: 12px;
+            color: #212529;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
-    <div class="header">Rental Agreement</div>
-    <div class="details">
-        <p><strong>Tenant:</strong> <%= tenant?.name || '' %></p>
-        <p><strong>Email:</strong> <%= tenant?.email || '' %></p>
-        <p><strong>Property:</strong> <%= property?.address || property?.name || '' %></p>
-        <% if (room) { %>
-            <p><strong>Room:</strong> <%= room?.name || room?.room_id || '' %></p>
-        <% } %>
-        <p><strong>Start Date:</strong> <%= rental?.startDate ? new Date(rental.startDate).toLocaleDateString() : '' %></p>
-        <p><strong>End Date:</strong> <%= rental?.endDate ? new Date(rental.endDate).toLocaleDateString() : '' %></p>
-        <p><strong>Rent Amount:</strong> <%= rental?.rentAmount || 0 %></p>
-    </div>
-    <div class="terms">
-        <h3>Terms and Conditions</h3>
-        <p>1. Rent will be paid on time.</p>
-        <p>2. Security deposit to be held by landlord.</p>
-        <p>3. No subletting without permission.</p>
-        <!-- Add more terms as needed -->
-    </div>
-    <div class="signature">
-        <p>Signature: ______________________</p>
-        <p>Date: ______________________</p>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <!-- Uncomment and add logo path when available -->
+            <!-- <img src="path/to/logo.png" alt="RentalInn Logo" class="logo" /> -->
+            <div class="company-name">RENTAL INN</div>
+            <div class="document-title">Rental Agreement</div>
+            <div class="document-subtitle">
+                This agreement is entered into on <%= new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+            </div>
+        </div>
+
+        <!-- Agreement Number -->
+        <div class="agreement-number">
+            <p>Agreement ID: <%= rental?.rental_id || 'N/A' %></p>
+        </div>
+
+        <!-- Parties Section -->
+        <div class="parties-section">
+            <h2>Parties to the Agreement</h2>
+
+            <div class="party-block">
+                <div class="party-label">Landlord / Property Owner</div>
+                <div class="party-name">RentalInn Property Management</div>
+                <div class="party-detail">
+                    <strong>Property:</strong> <%= property?.address || property?.name || 'N/A' %>
+                </div>
+            </div>
+
+            <div class="party-block">
+                <div class="party-label">Tenant / Lessee</div>
+                <div class="party-name"><%= tenant?.name || 'N/A' %></div>
+                <% if (tenant?.email) { %>
+                    <div class="party-detail">
+                        <strong>Email:</strong> <%= tenant.email %>
+                    </div>
+                <% } %>
+                <% if (tenant?.phone_number) { %>
+                    <div class="party-detail">
+                        <strong>Phone:</strong> <%= tenant.phone_number %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Property Details -->
+        <div class="property-section">
+            <h2>Property Details</h2>
+            <div class="property-grid">
+                <div class="property-item">
+                    <div class="property-item-label">Property Address</div>
+                    <div class="property-item-value"><%= property?.address || property?.name || 'N/A' %></div>
+                </div>
+                <% if (room) { %>
+                    <div class="property-item">
+                        <div class="property-item-label">Room / Unit</div>
+                        <div class="property-item-value"><%= room?.name || room?.room_id || 'N/A' %></div>
+                    </div>
+                <% } %>
+                <div class="property-item">
+                    <div class="property-item-label">Lease Start Date</div>
+                    <div class="property-item-value">
+                        <%= rental?.startDate ? new Date(rental.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' %>
+                    </div>
+                </div>
+                <div class="property-item">
+                    <div class="property-item-label">Lease End Date</div>
+                    <div class="property-item-value">
+                        <%= rental?.endDate ? new Date(rental.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Details -->
+        <div class="financial-section">
+            <h2>Financial Terms</h2>
+            <div class="financial-grid">
+                <div class="financial-item">
+                    <div class="financial-label">Monthly Rent</div>
+                    <div class="financial-value">$<%= parseFloat(rental?.rentAmount || 0).toFixed(2) %></div>
+                </div>
+                <div class="financial-item">
+                    <div class="financial-label">Security Deposit</div>
+                    <div class="financial-value">$<%= parseFloat(rental?.securityDeposit || 0).toFixed(2) %></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="terms-section">
+            <h2>Terms and Conditions</h2>
+
+            <div class="term-item">
+                <div class="term-number">1</div>
+                <div class="term-title">Payment of Rent</div>
+                <div class="term-content">
+                    The Tenant agrees to pay the monthly rent of $<%= parseFloat(rental?.rentAmount || 0).toFixed(2) %>
+                    on or before the due date each month. Late payments may incur additional fees as specified in the payment terms.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">2</div>
+                <div class="term-title">Security Deposit</div>
+                <div class="term-content">
+                    A security deposit of $<%= parseFloat(rental?.securityDeposit || 0).toFixed(2) %> shall be held by the Landlord
+                    for the duration of the tenancy. This deposit will be returned to the Tenant within 30 days after the termination
+                    of this agreement, subject to any deductions for damages or unpaid rent.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">3</div>
+                <div class="term-title">Property Use</div>
+                <div class="term-content">
+                    The Tenant shall use the property solely for residential purposes and shall not engage in any illegal activities
+                    on the premises. The Tenant agrees to maintain the property in good condition and promptly report any damages or
+                    necessary repairs to the Landlord.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">4</div>
+                <div class="term-title">Subletting</div>
+                <div class="term-content">
+                    The Tenant shall not sublet the property or any portion thereof without prior written consent from the Landlord.
+                    Any unauthorized subletting may result in immediate termination of this agreement.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">5</div>
+                <div class="term-title">Maintenance and Repairs</div>
+                <div class="term-content">
+                    The Landlord shall be responsible for major structural repairs and maintenance of common areas. The Tenant shall
+                    be responsible for routine maintenance and minor repairs resulting from normal wear and tear.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">6</div>
+                <div class="term-title">Termination</div>
+                <div class="term-content">
+                    Either party may terminate this agreement by providing written notice at least 30 days prior to the intended
+                    termination date. Early termination by the Tenant may result in forfeiture of the security deposit.
+                </div>
+            </div>
+
+            <div class="term-item">
+                <div class="term-number">7</div>
+                <div class="term-title">Compliance with Laws</div>
+                <div class="term-content">
+                    Both parties agree to comply with all applicable federal, state, and local laws and regulations pertaining to
+                    this rental agreement and the use of the property.
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notice -->
+        <div class="notice-box">
+            <h3>Important Notice</h3>
+            <p>
+                By signing this agreement, both parties acknowledge that they have read, understood, and agree to be bound by all
+                the terms and conditions set forth in this rental agreement. This document constitutes the entire agreement between
+                the parties and supersedes any prior oral or written agreements.
+            </p>
+        </div>
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <h2>Signatures</h2>
+            <p style="text-align: center; color: #6C757D; font-size: 13px; margin-bottom: 30px;">
+                The parties hereby acknowledge and agree to the terms and conditions of this rental agreement:
+            </p>
+
+            <div class="signature-grid">
+                <div class="signature-block">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Landlord Signature</div>
+                    <div class="signature-name">Property Owner / Representative</div>
+                </div>
+
+                <div class="signature-block">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Tenant Signature</div>
+                    <div class="signature-name"><%= tenant?.name || 'Tenant Name' %></div>
+                </div>
+            </div>
+
+            <div class="date-block">
+                <div class="date-label">Date of Execution</div>
+                <div class="date-line"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><span class="brand">RentalInn</span> - Professional Property Management Solutions</p>
+            <p>This is an official rental agreement document.</p>
+            <p style="margin-top: 10px; font-size: 10px;">
+                This agreement is legally binding. Please read carefully before signing.
+            </p>
+        </div>
     </div>
 </body>
 </html>

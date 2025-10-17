@@ -3,47 +3,458 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice</title>
+    <title>Invoice - RentalInn</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { text-align: center; font-size: 24px; margin-bottom: 20px; }
-        .details { margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .total { font-weight: bold; text-align: right; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #212529;
+            background-color: #ffffff;
+            padding: 40px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #001C68;
+            margin-bottom: 30px;
+        }
+
+        .logo-section {
+            flex: 1;
+        }
+
+        .logo {
+            width: 180px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 5px;
+        }
+
+        .company-tagline {
+            font-size: 12px;
+            color: #6C757D;
+            font-style: italic;
+        }
+
+        .invoice-title-section {
+            text-align: right;
+            flex: 1;
+        }
+
+        .invoice-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #001C68;
+            margin-bottom: 10px;
+        }
+
+        .invoice-number {
+            font-size: 14px;
+            color: #6C757D;
+            margin-bottom: 5px;
+        }
+
+        .invoice-status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-paid {
+            background-color: #28A745;
+            color: #FFFFFF;
+        }
+
+        .status-pending {
+            background-color: #FFC107;
+            color: #000000;
+        }
+
+        .status-overdue {
+            background-color: #DC3545;
+            color: #FFFFFF;
+        }
+
+        .status-draft {
+            background-color: #6C757D;
+            color: #FFFFFF;
+        }
+
+        /* Invoice Details Section */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            gap: 30px;
+        }
+
+        .info-block {
+            flex: 1;
+        }
+
+        .info-block h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #EE7B11;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-block p {
+            font-size: 13px;
+            color: #212529;
+            margin-bottom: 6px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6C757D;
+            display: inline-block;
+            min-width: 90px;
+        }
+
+        /* Items Table */
+        .items-section {
+            margin-bottom: 30px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 28, 104, 0.08);
+        }
+
+        .items-table thead {
+            background: linear-gradient(135deg, #001C68 0%, #00266e 100%);
+            color: #FFFFFF;
+        }
+
+        .items-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table tbody tr {
+            border-bottom: 1px solid rgba(238, 123, 17, 0.1);
+        }
+
+        .items-table tbody tr:hover {
+            background-color: rgba(238, 123, 17, 0.03);
+        }
+
+        .items-table td {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #212529;
+        }
+
+        .items-table .text-right {
+            text-align: right;
+        }
+
+        .items-table .text-center {
+            text-align: center;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .summary-box {
+            width: 320px;
+            border: 2px solid rgba(238, 123, 17, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(238, 123, 17, 0.1);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #6C757D;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 13px;
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .summary-total {
+            background: linear-gradient(135deg, #001C68 0%, #00266e 100%);
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .summary-total .summary-label,
+        .summary-total .summary-value {
+            color: #FFFFFF;
+            font-size: 16px;
+        }
+
+        /* Payment Details */
+        .payment-details {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #F9FAFB;
+            border-left: 4px solid #EE7B11;
+            border-radius: 4px;
+        }
+
+        .payment-details h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #001C68;
+            margin-bottom: 12px;
+        }
+
+        .payment-details p {
+            font-size: 12px;
+            color: #6C757D;
+            margin-bottom: 6px;
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(238, 123, 17, 0.05);
+            border-radius: 6px;
+        }
+
+        .notes-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #001C68;
+            margin-bottom: 10px;
+        }
+
+        .notes-section p {
+            font-size: 12px;
+            color: #212529;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(238, 123, 17, 0.1);
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 11px;
+            color: #6C757D;
+            margin-bottom: 5px;
+        }
+
+        .footer .brand {
+            color: #EE7B11;
+            font-weight: 600;
+        }
+
+        /* Currency Formatting */
+        .currency {
+            font-weight: 600;
+            color: #001C68;
+        }
     </style>
 </head>
 <body>
-    <div class="header">Invoice</div>
-    <div class="details">
-        <p><strong>Invoice Number:</strong> <%= invoice.invoice_number || invoice.invoice_id %></p>
-        <p><strong>Issue Date:</strong> <%= invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString() : '' %></p>
-        <p><strong>Due Date:</strong> <%= invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '' %></p>
-        <% if (invoice.tenant) { %>
-            <p><strong>Bill To:</strong> <%= invoice.tenant.name %></p>
-            <p><strong>Email:</strong> <%= invoice.tenant.email || '' %></p>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="logo-section">
+                <!-- Uncomment and add logo path when available -->
+                <!-- <img src="path/to/logo.png" alt="RentalInn Logo" class="logo" /> -->
+                <div class="company-name">RENTAL INN</div>
+                <div class="company-tagline">Property Management Solutions</div>
+            </div>
+            <div class="invoice-title-section">
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#<%= invoice.invoice_number || invoice.invoice_id %></div>
+                <%
+                    let statusClass = 'status-draft';
+                    let statusText = 'DRAFT';
+                    if (invoice.status === 'PAID') {
+                        statusClass = 'status-paid';
+                        statusText = 'PAID';
+                    } else if (invoice.status === 'SENT' || invoice.status === 'PARTIALLY_PAID') {
+                        statusClass = 'status-pending';
+                        statusText = invoice.status === 'PARTIALLY_PAID' ? 'PARTIALLY PAID' : 'PENDING';
+                    } else if (invoice.status === 'OVERDUE') {
+                        statusClass = 'status-overdue';
+                        statusText = 'OVERDUE';
+                    }
+                %>
+                <div class="invoice-status <%= statusClass %>"><%= statusText %></div>
+            </div>
+        </div>
+
+        <!-- Invoice Information Section -->
+        <div class="info-section">
+            <div class="info-block">
+                <h3>Bill To</h3>
+                <% if (invoice.tenant) { %>
+                    <p style="font-weight: 600; font-size: 15px; color: #001C68; margin-bottom: 8px;">
+                        <%= invoice.tenant.name %>
+                    </p>
+                    <% if (invoice.tenant.email) { %>
+                        <p><span class="info-label">Email:</span> <%= invoice.tenant.email %></p>
+                    <% } %>
+                    <% if (invoice.tenant.phone_number) { %>
+                        <p><span class="info-label">Phone:</span> <%= invoice.tenant.phone_number %></p>
+                    <% } %>
+                <% } %>
+            </div>
+
+            <div class="info-block">
+                <h3>Invoice Details</h3>
+                <p>
+                    <span class="info-label">Issue Date:</span>
+                    <%= invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '' %>
+                </p>
+                <p>
+                    <span class="info-label">Due Date:</span>
+                    <%= invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '' %>
+                </p>
+                <% if (invoice.description) { %>
+                    <p>
+                        <span class="info-label">Description:</span>
+                        <%= invoice.description %>
+                    </p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="items-section">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Description</th>
+                        <th style="width: 20%;" class="text-center">Quantity</th>
+                        <th style="width: 15%;" class="text-right">Unit Price</th>
+                        <th style="width: 15%;" class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% (invoice.items || []).forEach(item => {
+                        const quantity = item.quantity || 1;
+                        const unitPrice = parseFloat(item.amount || 0);
+                        const total = quantity * unitPrice;
+                    %>
+                        <tr>
+                            <td>
+                                <strong><%= item.category || 'Item' %></strong>
+                                <% if (item.description && item.description !== item.category) { %>
+                                    <br/>
+                                    <span style="font-size: 11px; color: #6C757D;">
+                                        <%= item.description %>
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td class="text-center"><%= quantity %></td>
+                            <td class="text-right"><span class="currency">$<%= unitPrice.toFixed(2) %></span></td>
+                            <td class="text-right"><span class="currency">$<%= total.toFixed(2) %></span></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span class="summary-label">Subtotal:</span>
+                    <span class="summary-value">$<%= parseFloat(invoice.total_amount || 0).toFixed(2) %></span>
+                </div>
+                <% if (invoice.paid_amount && invoice.paid_amount > 0) { %>
+                    <div class="summary-row">
+                        <span class="summary-label">Paid:</span>
+                        <span class="summary-value" style="color: #28A745;">-$<%= parseFloat(invoice.paid_amount).toFixed(2) %></span>
+                    </div>
+                <% } %>
+                <div class="summary-row summary-total">
+                    <span class="summary-label">
+                        <%= (invoice.paid_amount && invoice.paid_amount > 0) ? 'Amount Due:' : 'Total Amount:' %>
+                    </span>
+                    <span class="summary-value">
+                        $<%= parseFloat(invoice.outstanding_amount || invoice.total_amount || 0).toFixed(2) %>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <% if (invoice.notes) { %>
+            <div class="notes-section">
+                <h3>Notes</h3>
+                <p><%= invoice.notes %></p>
+            </div>
         <% } %>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% (invoice.items || []).forEach(item => { %>
-                <tr>
-                    <td><%= item.description || item.category %></td>
-                    <td><%= item.quantity || 1 %></td>
-                    <td><%= item.amount %></td>
-                </tr>
-            <% }); %>
-        </tbody>
-    </table>
-    <div class="total">
-        <p>Total Amount: <%= invoice.total_amount || invoice.totalAmount || 0 %></p>
+
+        <!-- Payment Instructions -->
+        <div class="payment-details">
+            <h3>Payment Instructions</h3>
+            <p>Please make payment by the due date to avoid late fees.</p>
+            <p>For any questions regarding this invoice, please contact us.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><span class="brand">RentalInn</span> - Professional Property Management</p>
+            <p>Thank you for your business!</p>
+            <p style="margin-top: 10px; font-size: 10px;">
+                This is a computer-generated invoice and does not require a signature.
+            </p>
+        </div>
     </div>
 </body>
 </html>
