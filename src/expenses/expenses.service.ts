@@ -198,15 +198,29 @@ export class ExpensesService {
     // Update expense amounts and status
     expense.paid_amount += createPaymentDto.amount;
     expense.outstanding_amount -= createPaymentDto.amount;
+    // Determine new status
+    let newStatus: ExpenseStatus;
+    let paymentDate: Date | null = null;
 
     if (expense.outstanding_amount === 0) {
-      expense.status = ExpenseStatus.PAID;
-      expense.payment_date = new Date(createPaymentDto.payment_date);
+      newStatus = ExpenseStatus.PAID;
+      paymentDate = new Date(createPaymentDto.payment_date);
     } else {
-      expense.status = ExpenseStatus.PARTIALLY_PAID;
+      newStatus = ExpenseStatus.PARTIALLY_PAID;
     }
 
-    await this.expenseRepository.save(expense);
+    // Update expense using query builder to avoid cascade issues
+    const updateData: any = {
+      paid_amount: expense.paid_amount,
+      outstanding_amount: expense.outstanding_amount,
+      status: newStatus,
+    };
+
+    if (paymentDate) {
+      updateData.payment_date = paymentDate;
+    }
+
+    await this.expenseRepository.update({ expense_id: expenseId }, updateData);
 
     return payment;
   }

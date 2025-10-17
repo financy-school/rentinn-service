@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Body,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import {
@@ -18,6 +10,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('settings')
 @UseGuards(JwtAuthGuard)
@@ -25,82 +18,76 @@ export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get()
-  getUserSettings(@Request() req: any) {
-    return this.settingsService.getUserSettings(req.user.user_id);
+  getUserSettings(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.getUserSettings(user_id);
   }
 
   @Get('app-info')
-  getAppInfo(@Request() req: any) {
-    return this.settingsService.getAppInfo(req.user.user_id);
+  getAppInfo(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.getAppInfo(user_id);
   }
 
   @Patch()
   updateSettings(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() updateSettingsDto: UpdateSettingsDto,
   ) {
-    return this.settingsService.updateSettings(
-      req.user.user_id,
-      updateSettingsDto,
-    );
+    return this.settingsService.updateSettings(user_id, updateSettingsDto);
   }
 
   @Post('reset')
-  resetSettings(@Request() req: any) {
-    return this.settingsService.resetToDefaults(req.user.user_id);
+  resetSettings(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.resetToDefaults(user_id);
   }
 
   @Post('backup')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  backupData(@Request() req: any) {
-    return this.settingsService.backupUserData(req.user.user_id);
+  backupData(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.backupUserData(user_id);
   }
 
   @Post('export-reports')
   @UseGuards(RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  exportReports(@Request() req: any) {
-    return this.settingsService.exportReports(req.user.user_id);
+  exportReports(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.exportReports(user_id);
   }
 
   @Post('clear-cache')
-  clearCache(@Request() req: any) {
-    return this.settingsService.clearCache(req.user.user_id);
+  clearCache(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.clearCache(user_id);
   }
 
   @Post('password-changed')
-  passwordChanged(@Request() req: any) {
-    return this.settingsService.updatePasswordChangeDate(req.user.user_id);
+  passwordChanged(@CurrentUser('user_id') user_id: string) {
+    return this.settingsService.updatePasswordChangeDate(user_id);
   }
 
   // Notification-specific endpoints
   @Patch('notifications')
   updateNotifications(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() notifications: NotificationSettingsDto,
   ) {
-    return this.settingsService.updateSettings(req.user.user_id, notifications);
+    return this.settingsService.updateSettings(user_id, notifications);
   }
 
   // App preferences endpoints
   @Patch('preferences')
   updatePreferences(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() preferences: AppPreferencesDto,
   ) {
-    return this.settingsService.updateSettings(
-      req.user.user_id,
-      preferences as any,
-    );
+    return this.settingsService.updateSettings(user_id, preferences as any);
   }
 
   // Privacy settings endpoints
   @Patch('privacy')
   updatePrivacySettings(
-    @Request() req: any,
+    @CurrentUser('user_id') user_id: string,
     @Body() privacy: PrivacySettingsDto,
   ) {
-    return this.settingsService.updateSettings(req.user.user_id, privacy);
+    return this.settingsService.updateSettings(user_id, privacy);
   }
 }

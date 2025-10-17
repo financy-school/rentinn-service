@@ -115,10 +115,10 @@ export class SettingsService {
    * Export reports (placeholder for actual export logic)
    */
   async exportReports(
-    userId: number,
+    user_id: string,
   ): Promise<{ message: string; reportUrl: string }> {
     // Placeholder for actual export logic
-    const reportId = `report_${userId}_${Date.now()}`;
+    const reportId = `report_${user_id}_${Date.now()}`;
     const reportUrl = `https://api.example.com/reports/${reportId}.pdf`;
 
     return {

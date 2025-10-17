@@ -8,7 +8,6 @@ import {
   Delete,
   Query,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import {
@@ -25,6 +24,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('expenses')
 @UseGuards(JwtAuthGuard)
@@ -35,32 +35,38 @@ export class ExpensesController {
 
   @Post()
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async create(@Body() createExpenseDto: CreateExpenseDto, @Req() req: any) {
-    return await this.expensesService.create(
-      createExpenseDto,
-      req.user.user_id,
-    );
+  async create(
+    @Body() createExpenseDto: CreateExpenseDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return await this.expensesService.create(createExpenseDto, user_id);
   }
 
   @Get()
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async findAll(@Query() query: ExpenseQueryDto, @Req() req: any) {
-    return await this.expensesService.findAll(query, req.user.user_id);
+  async findAll(
+    @Query() query: ExpenseQueryDto,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return await this.expensesService.findAll(query, user_id);
   }
 
   @Get('analytics')
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   async getAnalytics(
     @Query() query: ExpenseAnalyticsQueryDto,
-    @Req() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return await this.expensesService.getAnalytics(query, req.user.user_id);
+    return await this.expensesService.getAnalytics(query, user_id);
   }
 
   @Get(':id')
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async findOne(@Param('id') id: string, @Req() req: any) {
-    return await this.expensesService.findOne(id, req.user.user_id);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return await this.expensesService.findOne(id, user_id);
   }
 
   @Patch(':id')
@@ -68,19 +74,18 @@ export class ExpensesController {
   async update(
     @Param('id') id: string,
     @Body() updateExpenseDto: UpdateExpenseDto,
-    @Req() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return await this.expensesService.update(
-      id,
-      updateExpenseDto,
-      req.user.user_id,
-    );
+    return await this.expensesService.update(id, updateExpenseDto, user_id);
   }
 
   @Delete(':id')
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async remove(@Param('id') id: string, @Req() req: any) {
-    await this.expensesService.remove(id, req.user.user_id);
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    await this.expensesService.remove(id, user_id);
     return { message: 'Expense deleted successfully' };
   }
 
@@ -91,19 +96,18 @@ export class ExpensesController {
   async addPayment(
     @Param('id') id: string,
     @Body() createPaymentDto: CreateExpensePaymentDto,
-    @Req() req: any,
+    @CurrentUser('user_id') user_id: string,
   ) {
-    return await this.expensesService.addPayment(
-      id,
-      createPaymentDto,
-      req.user.user_id,
-    );
+    return await this.expensesService.addPayment(id, createPaymentDto, user_id);
   }
 
   @Get(':id/payments')
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
-  async getPayments(@Param('id') id: string, @Req() req: any) {
-    return await this.expensesService.getPayments(id, req.user.user_id);
+  async getPayments(
+    @Param('id') id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return await this.expensesService.getPayments(id, user_id);
   }
 
   // ============= CATEGORY ENDPOINTS =============
