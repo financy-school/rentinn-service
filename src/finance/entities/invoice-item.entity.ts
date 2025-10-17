@@ -56,7 +56,7 @@ export class InvoiceItem {
   metadata: Record<string, any>; // For storing additional data like meter readings
 
   @ManyToOne(() => Invoice, (invoice) => invoice.items, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'invoiceId' })
+  @JoinColumn({ name: 'invoice_id' })
   invoice: Invoice;
 
   @Column({ type: 'varchar', length: 70 })

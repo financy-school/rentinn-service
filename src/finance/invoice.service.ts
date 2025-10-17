@@ -130,9 +130,15 @@ export class InvoiceService {
 
     // Generate PDF and upload to S3 (best-effort)
     try {
-      const invoiceWithRelations = await this.findInvoiceById(
-        savedInvoice.invoice_id,
-      );
+      // Fetch invoice with all relations including items
+      const invoiceWithRelations = await this.invoiceRepository.findOne({
+        where: { invoice_id: savedInvoice.invoice_id },
+        relations: ['items', 'tenant', 'rental'],
+      });
+
+      if (!invoiceWithRelations) {
+        throw new Error('Invoice not found after creation');
+      }
 
       // Create PDF buffer from template
       const templatePath = path.join(__dirname, '../../templates/invoice.ejs');
