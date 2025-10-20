@@ -14,6 +14,12 @@ export class Kyc {
   @Column({ primary: true, type: 'varchar', length: 70 })
   kyc_id: string;
 
+  @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
+  kyc_token: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  token_expires_at: Date;
+
   @Column({ type: 'varchar', length: 100, default: null, nullable: true })
   documentType: string;
 
@@ -37,6 +43,24 @@ export class Kyc {
 
   @Column({ nullable: true })
   expiryDate: Date;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  agreement_document_id: string;
+
+  @Column({ type: 'boolean', default: false })
+  agreement_signed: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  agreement_signed_at: Date;
+
+  @Column({ type: 'text', nullable: true })
+  tenant_signature: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  invoice_id: string;
+
+  @Column({ type: 'boolean', default: false })
+  invoice_generated: boolean;
 
   @ManyToOne(() => Tenant, (tenant) => tenant.kycDocuments)
   @JoinColumn({ name: 'tenant_id' })

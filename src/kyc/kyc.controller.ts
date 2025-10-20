@@ -98,4 +98,29 @@ export class KycController {
   ) {
     return this.kycService.remove(kyc_id, user_id);
   }
+
+  @Post(':kyc_id/approve')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  async approve(
+    @Param('kyc_id') kyc_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    return this.kycService.approveKyc(kyc_id, user_id);
+  }
+
+  @Get('tenant/:tenant_id/link')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
+  async getKycLink(
+    @Param('tenant_id') tenant_id: string,
+    @CurrentUser('user_id') user_id: string,
+  ) {
+    const token = await this.kycService.getKycLink(tenant_id, user_id);
+    return {
+      success: true,
+      token,
+      link: `${process.env.WEB_APP_URL || 'http://localhost:3000'}/kyc/${token}`,
+    };
+  }
 }
