@@ -19,6 +19,12 @@ export class KycPublicController {
     try {
       const kyc = await this.kycService.findByToken(token);
 
+      // Build property address from property entity
+      const property = kyc.tenant?.room?.property;
+      const propertyAddress = property
+        ? `${property.address}${property.city ? ', ' + property.city : ''}${property.state ? ', ' + property.state : ''}${property.postalCode ? ' - ' + property.postalCode : ''}`
+        : '';
+
       // Don't expose sensitive information
       return {
         success: true,
@@ -31,16 +37,20 @@ export class KycPublicController {
           },
           landlord: {
             id: kyc.user_id,
-            // We'll need to fetch landlord details if needed
-            name: 'Landlord',
-            email: '',
-            phone: '',
+            name: kyc.landlord ? kyc.landlord.fullName : 'Landlord',
+            email: kyc.landlord?.email || '',
+            phone: kyc.landlord?.phone || '',
+          },
+          property: {
+            id: property?.property_id || '',
+            name: property?.name || '',
+            address: propertyAddress,
           },
           room: kyc.tenant.room
             ? {
                 number: kyc.tenant.room.room_id,
                 name: kyc.tenant.room.name,
-                address: '',
+                address: propertyAddress,
               }
             : null,
           status: kyc.status,
@@ -50,6 +60,8 @@ export class KycPublicController {
             String(kyc.status) === 'VERIFIED' ||
             String(kyc.status) === 'IN_REVIEW',
           agreementSigned: kyc.agreement_signed,
+          documentType: kyc.documentType,
+          documentNumber: kyc.documentNumber,
         },
       };
     } catch (error) {
@@ -77,6 +89,7 @@ export class KycPublicController {
             token,
             data.documentType,
             data.documentNumber,
+            data.documentUrl,
           );
 
         case 'sign_agreement':

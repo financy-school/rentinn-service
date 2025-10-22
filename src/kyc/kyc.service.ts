@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Kyc } from './entities/kyc.entity';
 import { Tenant } from '../tenant/entities/tenant.entity';
+import { User } from '../users/entities/user.entity';
+import { DocumentsService } from '../documents/documents.service';
 import { CreateKycDto } from './dto/create-kyc.dto';
 import { UpdateKycDto } from './dto/update-kyc.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
@@ -14,6 +16,8 @@ import { PaginationResponse } from '../common/interfaces/pagination-response.int
 import { KycStatus } from '../common/enums/kyc-status.enum';
 import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
+import * as ejs from 'ejs';
+import * as path from 'path';
 
 @Injectable()
 export class KycService {
@@ -22,6 +26,9 @@ export class KycService {
     private readonly kycRepository: Repository<Kyc>,
     @InjectRepository(Tenant)
     private readonly tenantRepository: Repository<Tenant>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   /**
@@ -67,10 +74,10 @@ export class KycService {
   /**
    * Find KYC by token (for public access)
    */
-  async findByToken(token: string): Promise<Kyc> {
+  async findByToken(token: string): Promise<any> {
     const kyc = await this.kycRepository.findOne({
       where: { kyc_token: token },
-      relations: ['tenant', 'tenant.room'],
+      relations: ['tenant', 'tenant.room', 'tenant.room.property'],
     });
 
     if (!kyc) {
@@ -81,11 +88,16 @@ export class KycService {
       throw new BadRequestException('KYC token has expired');
     }
 
-    return kyc;
+    // Fetch landlord details
+    const landlord = await this.userRepository.findOne({
+      where: { user_id: kyc.user_id },
+    });
+
+    return Object.assign(kyc, { landlord });
   }
 
   /**
-   * Verify document via DigiLocker (placeholder for actual integration)
+   * Upload and verify document (replaces DigiLocker)
    */
   async verifyDocument(
     token: string,
@@ -94,8 +106,7 @@ export class KycService {
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     const kyc = await this.findByToken(token);
 
-    // TODO: Integrate with actual DigiLocker API
-    // For now, we'll do basic validation
+    // Validate required fields
     if (!documentType || !documentNumber) {
       return {
         success: false,
@@ -343,32 +354,88 @@ export class KycService {
   }
 
   /**
-   * Generate rental agreement (placeholder - would integrate with document service)
+   * Generate rental agreement PDF
    */
   async generateAgreement(
     token: string,
     agreementData: any,
-  ): Promise<{ success: boolean; agreementUrl?: string; error?: string }> {
-    const kyc = await this.findByToken(token);
+  ): Promise<{
+    success: boolean;
+    agreementUrl?: string;
+    agreementId?: string;
+    error?: string;
+  }> {
+    try {
+      const kyc = await this.findByToken(token);
 
-    if (!kyc.documentType || !kyc.documentNumber) {
+      if (!kyc.documentType || !kyc.documentNumber) {
+        return {
+          success: false,
+          error: 'Please complete document verification first',
+        };
+      }
+
+      // Generate agreement ID
+      const agreementId = `AGR-${uuidv4()}`;
+
+      // Prepare template data
+      const templateData = {
+        tenant: kyc.tenant,
+        landlord: kyc.landlord,
+        property: kyc.tenant?.room?.property,
+        room: kyc.tenant?.room,
+        rental: {
+          rental_id: agreementId,
+          startDate: agreementData?.startDate || new Date(),
+          endDate: agreementData?.endDate,
+          rentAmount:
+            kyc.tenant?.rent_amount || kyc.tenant?.room?.rentAmount || 0,
+          securityDeposit: kyc.tenant?.room?.securityAmount || 0,
+        },
+      };
+
+      // Read and render template
+      const templatePath = path.join(
+        __dirname,
+        '../../templates',
+        'rental-agreement.ejs',
+      );
+      const html = await ejs.renderFile(templatePath, templateData, {
+        async: true,
+      });
+
+      // Generate PDF using DocumentsService
+      const pdfOptions = {
+        format: 'A4' as const,
+        border: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
+        },
+        timeout: 30000,
+      };
+
+      const pdfBuffer = await this.documentsService.createPDF(html, pdfOptions);
+
+      // Convert PDF to base64 for easy transmission
+      const pdfBase64 = pdfBuffer.toString('base64');
+
+      // Save agreement ID to KYC
+      kyc.agreement_document_id = agreementId;
+      await this.kycRepository.save(kyc);
+
+      return {
+        success: true,
+        agreementUrl: `data:application/pdf;base64,${pdfBase64}`,
+        agreementId: agreementId,
+      };
+    } catch (error) {
       return {
         success: false,
-        error: 'Please complete document verification first',
+        error: `Failed to generate agreement: ${error}`,
       };
     }
-
-    // TODO: Integrate with actual document generation service
-    // For now, we'll just mark that agreement is ready
-    const agreementId = `AGR-${uuidv4()}`;
-    kyc.agreement_document_id = agreementId;
-
-    await this.kycRepository.save(kyc);
-
-    return {
-      success: true,
-      agreementUrl: `/documents/${agreementId}`,
-    };
   }
 
   /**

@@ -402,10 +402,22 @@
 
             <div class="party-block">
                 <div class="party-label">Landlord / Property Owner</div>
-                <div class="party-name">RentalInn Property Management</div>
-                <div class="party-detail">
-                    <strong>Property:</strong> <%= property?.address || property?.name || 'N/A' %>
-                </div>
+                <div class="party-name"><%= landlord?.firstName %> <%= landlord?.lastName %></div>
+                <% if (landlord?.email) { %>
+                    <div class="party-detail">
+                        <strong>Email:</strong> <%= landlord.email %>
+                    </div>
+                <% } %>
+                <% if (landlord?.phone) { %>
+                    <div class="party-detail">
+                        <strong>Phone:</strong> <%= landlord.phone %>
+                    </div>
+                <% } %>
+                <% if (landlord?.address) { %>
+                    <div class="party-detail">
+                        <strong>Address:</strong> <%= landlord.address %><%= landlord.city ? ', ' + landlord.city : '' %><%= landlord.state ? ', ' + landlord.state : '' %>
+                    </div>
+                <% } %>
             </div>
 
             <div class="party-block">
@@ -428,14 +440,24 @@
         <div class="property-section">
             <h2>Property Details</h2>
             <div class="property-grid">
-                <div class="property-item">
+                <div class="property-item" style="grid-column: 1 / -1;">
+                    <div class="property-item-label">Property Name</div>
+                    <div class="property-item-value"><%= property?.name || 'N/A' %></div>
+                </div>
+                <div class="property-item" style="grid-column: 1 / -1;">
                     <div class="property-item-label">Property Address</div>
-                    <div class="property-item-value"><%= property?.address || property?.name || 'N/A' %></div>
+                    <div class="property-item-value">
+                        <%= property?.address || 'N/A' %><%= property?.city ? ', ' + property.city : '' %><%= property?.state ? ', ' + property.state : '' %><%= property?.postalCode ? ' - ' + property.postalCode : '' %>
+                    </div>
                 </div>
                 <% if (room) { %>
                     <div class="property-item">
                         <div class="property-item-label">Room / Unit</div>
                         <div class="property-item-value"><%= room?.name || room?.room_id || 'N/A' %></div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-item-label">Room Type</div>
+                        <div class="property-item-value"><%= room?.areaType || 'N/A' %></div>
                     </div>
                 <% } %>
                 <div class="property-item">
