@@ -62,7 +62,9 @@ export class Kyc {
   @Column({ type: 'boolean', default: false })
   invoice_generated: boolean;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.kycDocuments)
+  @ManyToOne(() => Tenant, (tenant) => tenant.kycDocuments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 

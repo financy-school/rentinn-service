@@ -80,7 +80,7 @@ export class Invoice {
   last_reminder_sent: Date;
 
   // Relationships
-  @ManyToOne(() => Tenant, { eager: true })
+  @ManyToOne(() => Tenant, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 

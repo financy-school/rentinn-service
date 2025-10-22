@@ -54,7 +54,7 @@ export class Rental {
   @Column({ default: 1 })
   rentDueDay: number;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.rentals)
+  @ManyToOne(() => Tenant, (tenant) => tenant.rentals, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 

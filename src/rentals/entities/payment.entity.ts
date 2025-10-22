@@ -62,7 +62,7 @@ export class Payment {
   @Column({ nullable: true, type: 'varchar', length: 200 })
   invoice_id: string;
 
-  @ManyToOne(() => Tenant, { nullable: true })
+  @ManyToOne(() => Tenant, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
