@@ -120,7 +120,7 @@ export class KycController {
     return {
       success: true,
       token,
-      link: `${process.env.WEB_APP_URL || 'https://rentalinn.ddns.net'}/kyc/${token}`,
+      link: `${process.env.WEB_APP_URL || 'https://rentalinn.space'}/kyc/${token}`,
     };
   }
 }

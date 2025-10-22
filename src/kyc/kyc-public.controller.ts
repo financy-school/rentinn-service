@@ -89,7 +89,6 @@ export class KycPublicController {
             token,
             data.documentType,
             data.documentNumber,
-            data.documentUrl,
           );
 
         case 'sign_agreement':
