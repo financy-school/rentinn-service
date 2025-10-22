@@ -1,11 +1,13 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { KycService } from './kyc.service';
+import { Public } from '../auth/decorators/public.decorator';
 
 /**
  * Public KYC Controller (no authentication required)
  * Used for tenant self-service KYC completion via token
  */
 @Controller('public/kyc')
+@Public()
 export class KycPublicController {
   constructor(private readonly kycService: KycService) {}
 

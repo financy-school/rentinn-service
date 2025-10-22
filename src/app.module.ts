@@ -14,6 +14,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { DocumentsModule } from './documents/documents.module';
 import { SettingsModule } from './settings/settings.module';
 import { ExpensesModule } from './expenses/expenses.module';
+import { KycModule } from './kyc/kyc.module';
 import * as Entities from './entities';
 
 @Module({
@@ -71,6 +72,7 @@ import * as Entities from './entities';
     DocumentsModule,
     SettingsModule,
     ExpensesModule,
+    KycModule,
   ],
 })
 export class AppModule {}
